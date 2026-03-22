@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token')?.trim();
     if (token) {
       api.get('/auth/me')
         .then((data) => setUser(data.user))
@@ -24,16 +24,16 @@ export function AuthProvider({ children }) {
 
   async function signup(userData) {
     const data = await api.post('/auth/signup', userData);
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
+    localStorage.setItem('access_token', String(data.access_token || '').trim());
+    localStorage.setItem('refresh_token', String(data.refresh_token || '').trim());
     setUser(data.user);
     return data;
   }
 
   async function login(email, password) {
     const data = await api.post('/auth/login', { email, password });
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
+    localStorage.setItem('access_token', String(data.access_token || '').trim());
+    localStorage.setItem('refresh_token', String(data.refresh_token || '').trim());
     setUser(data.user);
     return data;
   }

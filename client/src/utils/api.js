@@ -11,6 +11,27 @@ function resolveApiBase() {
 
 const API_BASE = resolveApiBase();
 
+/**
+ * JWT from login only. Strip CR/LF (invalid in Fetch headers). Reject Supabase dashboard keys
+ * (sb_secret_ / sb_publishable_) — those belong in Railway env, never as Bearer in the browser.
+ */
+function getBearerToken() {
+  const raw = localStorage.getItem('access_token');
+  if (raw == null || raw === '') return null;
+  let t = String(raw).trim().replace(/\r|\n|\0/g, '');
+  if (/^bearer\s+/i.test(t)) t = t.replace(/^bearer\s+/i, '').trim();
+  if (!t || /[\r\n\0]/.test(t)) return null;
+  if (t.startsWith('sb_secret_') || t.startsWith('sb_publishable_')) {
+    console.warn(
+      'Removed invalid access_token from storage. Log in again — do not paste Supabase API keys into the app; use email/password login.',
+    );
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    return null;
+  }
+  return t;
+}
+
 function isBrowserNetworkError(err) {
   if (err?.name !== 'TypeError') return false;
   const msg = String(err?.message || '').toLowerCase();
@@ -39,7 +60,7 @@ async function fetchApi(path, options) {
 }
 
 async function request(path, options = {}) {
-  const token = localStorage.getItem('access_token');
+  const token = getBearerToken();
   const headers = { ...options.headers };
 
   if (token) {
@@ -72,7 +93,7 @@ export const api = {
   delete: (path) => request(path, { method: 'DELETE' }),
 
   postRaw: async (path, body) => {
-    const token = localStorage.getItem('access_token');
+    const token = getBearerToken();
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
     const res = await fetchApi(path, {
@@ -88,7 +109,7 @@ export const api = {
   },
 
   upload: async (path, buffer, filename, extraHeaders = {}) => {
-    const token = localStorage.getItem('access_token');
+    const token = getBearerToken();
     const headers = { 'Content-Type': 'application/octet-stream', 'X-Filename': filename, ...extraHeaders };
     if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -106,7 +127,7 @@ export const api = {
   },
 
   stream: async function* (path, body) {
-    const token = localStorage.getItem('access_token');
+    const token = getBearerToken();
     const res = await fetchApi(path, {
       method: 'POST',
       headers: {
