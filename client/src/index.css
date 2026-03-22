@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-navy text-white font-mulish;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sora;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-orange hover:bg-orange-hover text-white font-sora font-semibold
+           py-3 px-6 rounded-lg transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply border border-stone text-stone hover:text-white hover:border-white
+           font-sora font-medium py-3 px-6 rounded-lg transition-colors duration-200;
+  }
+
+  .btn-ghost {
+    @apply text-stone hover:text-white font-mulish transition-colors duration-200;
+  }
+
+  .card-dark {
+    @apply bg-navy-light rounded-xl border border-white/10 p-6;
+  }
+
+  .card-light {
+    @apply bg-offwhite rounded-xl p-6 text-navy;
+  }
+
+  .skeleton {
+    @apply bg-navy-light animate-shimmer rounded;
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+  }
+}

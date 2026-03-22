@@ -1,0 +1,42 @@
+---
+description: QBO and Excel data import mapping rules for the Easy Numbers system
+globs: "**/integrations/**/*.{js,py}"
+alwaysApply: false
+---
+
+# Data Mapping Rules
+
+## Critical Import Rules
+
+1. **Never put labor in COGS.** If an account contains Labor, Wages, or Payroll in the COGS section, map to employee_direct_labor or subcontractors. Never cogs.
+2. **Never double-count owner pay.** If detected in both COGS and Expenses, use Expenses only. Flag COGS amount.
+3. **Sum, never overwrite.** Multiple accounts mapping to the same field are added together.
+4. **Negative income goes to flagged.** Never include in revenue automatically.
+5. **Skip subtotals.** Never sum a subtotal row with its component rows.
+6. **Hard block on unmatched accounts over $1,000.** Owner must assign before proceeding.
+7. **Coverage check.** If mapped_total / source_total < 0.95, show warning.
+
+## Monthly Data Handling
+
+- The P&L template is monthly only. 48 columns. One per month.
+- Multi-month Excel exports: sum the last 12 month columns (rolling TTM).
+- Weekly/daily data: aggregate to monthly before writing to template.
+- Never attempt to write weekly granularity to the P&L template.
+
+## Owner Pay Split Defaults
+
+| Business Type | Direct Labor % | Management % |
+|---|---|---|
+| solo_service (under $200K) | 70% | 30% |
+| small_team (2-5 employees) | 50% | 50% |
+| larger_team (6+) | 30% | 70% |
+| retail_product | 40% | 60% |
+| unknown | 50% | 50% |
+
+## Mapping Pipeline Order
+
+1. Parse QBO report (flatten, skip subtotals, preserve negative amounts)
+2. Rule-based mapper (exact name match, then substring, then section default)
+3. AI classifier (Claude Haiku, only for unmatched Income/COGS accounts)
+4. Confirmation builder (confidence tiers, error prevention, live P&L preview)
+5. Expense/OtherExpense accounts with no name match default to other_opex. No AI call needed.

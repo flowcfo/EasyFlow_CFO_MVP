@@ -1,0 +1,52 @@
+---
+description: Excel P&L template row map, column layout, and formula rules
+globs: "**/*.{js,jsx,py}"
+alwaysApply: false
+---
+
+# Excel Model Structure
+
+File: EasyFlow_CFO_P_L_Input.xlsx (also EasyFlow_Financial_Profit_System_2026_ENHANCED.xlsx)
+Sheet: Easy_P&L_Input (or INPUT)
+Columns B through AW = Jan 2023 through Dec 2026 (48 months).
+
+## Color Coding
+
+- BLUE TEXT = Input cells. Owner enters data here.
+- BLACK TEXT = Formulas. Auto-calculated. Do not edit.
+- GREEN TEXT = Cross-sheet references.
+- NEVER hardcode a calculated value. Always use formulas.
+
+## INPUT Sheet Row Map
+
+| Row | Label | Type |
+|---|---|---|
+| 5-9 | Revenue lines (Services, Cleaning, Consulting, Workshops, Other) | Input |
+| 10 | Interest Income | Input (flag: non-operating, exclude from ratios) |
+| 11 | Other Revenue | Input |
+| 12 | Total Revenue = SUM(5:11) | Calculated |
+| 15-22 | COGS (Subcontractors, Freight, Materials, etc.) | Input |
+| 23 | Gross Margin | Calculated |
+| 29 | Owner Direct Labor (50% of owner pay) | Input |
+| 30-33 | Employee labor lines | Input |
+| 34 | Total Direct Labor | Calculated |
+| 36 | Direct LPR | Calculated |
+| 38 | Contribution Margin | Calculated |
+| 42-55 | Marketing lines | Input |
+| 56 | Total Marketing | Calculated |
+| 62-66 | Facilities (Rent, Utilities, Internet) | Input |
+| 70 | Owner Management Wage (50% of owner pay) | Input |
+| 76-79 | Payroll taxes and benefits | Input |
+| 83-94 | Other OpEx | Input |
+| 95 | Total OpEx | Calculated |
+| 98 | Pretax Net Income | Calculated |
+| 102 | Estimated Tax Rate (config: 0.40) | Config |
+
+## Critical Rules
+
+- Row 102 is a config input (tax rate 0.40), NOT a QBO data target.
+- Row 31 is relabeled "Fulfillment Staff 2" (was duplicate of Row 30).
+- Row 10 (Interest Income) is recorded but excluded from operating revenue for ratio calculations.
+- NEVER write to calculated rows. NEVER write to section header rows.
+- When importing monthly data, aggregate weekly/daily to monthly first.
+- Owner pay split: Row 29 + Row 70 must equal total owner pay exactly. Use floor + subtraction.

@@ -1,0 +1,44 @@
+---
+description: EasyFlow CFO MVP tech stack, file structure, and coding conventions
+alwaysApply: true
+---
+
+# App Architecture
+
+## Tech Stack
+
+- Frontend: React 18, Vite 6, Tailwind CSS, React Router DOM, Framer Motion
+- Backend: Node.js (ES modules), Express 4, Supabase (PostgreSQL + Auth)
+- Template Writer: Python (openpyxl) called via child_process from Node.js
+- AI: Claude Haiku for account classification
+- Integrations: QuickBooks Online (intuit-oauth), Excel/CSV (xlsx library)
+
+## Key Directories
+
+```
+client/src/screens/     — Page components (InputEngine, Dashboard, Onboarding)
+client/src/components/  — Reusable UI (InputField, OwnerPaySlider, MappingConfirmation)
+client/src/context/     — SnapshotContext (inputs, outputs, persistence via sessionStorage)
+client/src/hooks/       — useSnapshot, useAuth, useQBO, useCalc
+client/src/utils/       — api.js (fetch wrapper), format.js
+server/routes/          — Express route handlers (calc, auth, integrations, outputs)
+server/calculations/    — Waterfall, ratios, breakeven, forecast, Four Forces
+server/integrations/    — QBO, Excel, template writer pipelines
+shared/                 — schema.js (INPUT_SHAPE, validation), constants.js
+```
+
+## Conventions
+
+- All API calls go through `client/src/utils/api.js`
+- SnapshotContext persists inputs and fieldSources to sessionStorage
+- Authentication: Supabase Auth with JWTs, authGuard and optionalAuth middleware
+- File uploads use express.raw() middleware, not multer
+- Server uses ES module imports (import/export, not require)
+- Tests use Node.js built-in test runner (node:test) or Jest
+
+## The Four Named Problems (drive all UI copy)
+
+1. The Owner Pay Gap
+2. The Breakeven Lie
+3. Profit Leaks (Job, Marketing, Overhead)
+4. The Scaling Blind Spot

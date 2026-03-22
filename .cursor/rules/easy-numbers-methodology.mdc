@@ -1,0 +1,71 @@
+---
+description: Easy Numbers P&L waterfall, ratios, Four Forces, and diagnostic thresholds
+alwaysApply: true
+---
+
+# Easy Numbers Methodology
+
+Based on Greg Crabtree's Simple Numbers, adapted as Easy Numbers. Nick's proprietary system.
+Positioning: CRI teaches Simple Numbers. EasyFlow installs it.
+
+## P&L Waterfall
+
+```
+Revenue
+minus COGS (materials only. NO labor in COGS. Ever.)
+= Gross Margin
+minus Direct Labor (includes Owner Direct Labor, Row 23, 50% of owner pay)
+= Contribution Margin
+minus Marketing
+minus Operating Expenses (includes Owner Management Wage, Row 42, 50% of owner pay)
+= Pretax Net Income
+```
+
+True Pretax Profit = Pretax Net Income + Owner's Market Wage (add-back for diagnostic only)
+
+## Owner Pay Rules
+
+- Split 50/50 on the P&L: Row 23 (Owner Direct Labor) + Row 42 (Owner Management Wage)
+- No add-back in the actual P&L. Owner pay is an operating expense, not a distribution.
+- Use $30K in all early-stage examples.
+
+## Three Productivity Ratios
+
+| Ratio | Formula | Target |
+|---|---|---|
+| Direct LPR | Gross Margin / Direct Labor | 2.5x to 3.5x |
+| MPR | Gross Margin / Marketing Spend | 5x+ |
+| ManPR | Contribution Margin / Management Salaries only | 1.0x+ |
+
+The Excel model uses "LER" internally. Client-facing: always say Productivity Ratios and LPR.
+10% pretax profit = the new breakeven. This is not a goal. It is the floor.
+
+## Four Forces Cash Allocation (in order)
+
+1. Tax Reserve
+2. Debt Service
+3. Core Capital (2 months of operating expenses)
+4. Distributions (owner)
+
+Core Capital (Force 3) must be fully funded BEFORE Distributions (Force 4).
+
+## Diagnostic Thresholds
+
+| Metric | Target |
+|---|---|
+| Direct LPR | 2.5x to 3.5x |
+| MPR | 5x+ |
+| ManPR | 1.0x+ |
+| Pretax Profit % | 10%+ (5-9% Survival, under 5% Crisis) |
+| Core Capital | 2 months OpEx |
+| ROIC | 50%+ |
+| DSCR | 1.25x+ |
+| Cash Runway | 8+ weeks |
+
+## Crabtree 3-Bucket Capital
+
+| Bucket | Definition |
+|---|---|
+| Trade Capital | AR + Inventory + Other Current Assets minus AP, Deferred Revenue, Other Current Liabilities |
+| Infrastructure Capital | Net Fixed Assets minus Debt secured by Fixed Assets |
+| Buffer Capital | Cash minus Line of Credit Drawn |
