@@ -1,0 +1,10 @@
+# Client app in /client — build must run there so Vite copies public/_redirects → dist/_redirects
+[build]
+  base = "client"
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
