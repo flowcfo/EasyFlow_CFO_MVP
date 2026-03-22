@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSnapshot } from '../hooks/useSnapshot.js';
 import { useGame } from '../hooks/useGame.js';
@@ -13,8 +12,6 @@ import UnlockMap from '../components/UnlockMap.jsx';
 import AIChatPanel from '../components/AIChatPanel.jsx';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
 import SnapshotEmptyState from '../components/SnapshotEmptyState.jsx';
-import { formatCurrency, formatPercent } from '../utils/format.js';
-
 export default function ProfitDashboard() {
   const { outputs, interpretation, loading, error, calculate, inputs } = useSnapshot();
   const { gameProgress, completeAction } = useGame();
@@ -61,7 +58,6 @@ export default function ProfitDashboard() {
             <p className="font-mulish text-xs text-stone mb-1">{item.label}</p>
             <AnimatedCounter
               value={item.value}
-              prefix="$"
               className={`font-sora text-xl font-bold ${item.value >= 0 ? 'text-white' : 'text-status-red'}`}
             />
           </motion.div>

@@ -1,4 +1,4 @@
-import { formatCurrency, formatPercent } from '../utils/format.js';
+import { formatCurrencyWhole, formatPercent } from '../utils/format.js';
 
 export default function WaterfallRow({ label, value, percent, indent = 0, bold = false, highlight = false }) {
   return (
@@ -11,7 +11,7 @@ export default function WaterfallRow({ label, value, percent, indent = 0, bold =
       <span className={`font-mulish ${bold ? 'text-white' : 'text-stone-light'}`}>{label}</span>
       <div className="flex items-center gap-4">
         <span className={`font-sora ${highlight ? 'text-orange' : 'text-white'}`}>
-          {formatCurrency(value)}
+          {formatCurrencyWhole(value)}
         </span>
         {percent !== undefined && (
           <span className="font-mulish text-sm text-stone w-16 text-right">

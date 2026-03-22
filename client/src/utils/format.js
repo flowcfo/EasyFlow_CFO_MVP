@@ -7,6 +7,15 @@ export function formatCurrency(n) {
   return n < 0 ? `-${formatted}` : formatted;
 }
 
+/** Rounded to nearest dollar, thousands separators, no decimals (e.g. -$1,234,567). */
+export function formatCurrencyWhole(n) {
+  if (n === null || n === undefined || isNaN(n)) return '$0';
+  const rounded = Math.round(n);
+  const abs = Math.abs(rounded);
+  const formatted = abs.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return rounded < 0 ? `-$${formatted}` : `$${formatted}`;
+}
+
 export function formatPercent(n) {
   if (n === null || n === undefined || isNaN(n)) return '0.0%';
   return `${(n * 100).toFixed(1)}%`;

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
+import { formatCurrencyWhole } from '../utils/format.js';
 
-export default function AnimatedCounter({ value, prefix = '', suffix = '', duration = 1.5, className = '' }) {
+export default function AnimatedCounter({ value, suffix = '', duration = 1.5, className = '' }) {
   const [display, setDisplay] = useState(0);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
@@ -29,13 +30,10 @@ export default function AnimatedCounter({ value, prefix = '', suffix = '', durat
     requestAnimationFrame(animate);
   }, [value, duration, inView]);
 
-  const formatted = Number.isInteger(value)
-    ? Math.round(display).toLocaleString()
-    : display.toFixed(1);
-
   return (
     <motion.span ref={ref} className={className} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      {prefix}{formatted}{suffix}
+      {formatCurrencyWhole(display)}
+      {suffix}
     </motion.span>
   );
 }
