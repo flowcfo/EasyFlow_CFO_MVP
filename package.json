@@ -1,0 +1,12 @@
+{
+  "name": "easyflow-cfo-mvp",
+  "private": true,
+  "type": "module",
+  "workspaces": ["server"],
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
