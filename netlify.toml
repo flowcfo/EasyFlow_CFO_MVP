@@ -4,9 +4,16 @@
   command = "npm ci && npm run build"
   publish = "dist"
 
-# Baked in for production; override in Netlify UI if you use branch deploys / another API.
+# Same-origin API: browser calls /backend/* → Netlify proxies to Railway (avoids CORS / env mistakes).
 [build.environment]
-  VITE_API_URL = "https://easyflowcfomvp-production.up.railway.app"
+  VITE_API_URL = "/backend"
+
+# Proxy must be listed BEFORE the SPA catch-all.
+[[redirects]]
+  from = "/backend/*"
+  to = "https://easyflowcfomvp-production.up.railway.app/:splat"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"

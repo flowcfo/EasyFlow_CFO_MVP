@@ -1,4 +1,15 @@
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
+/** Absolute backend URL, or a path prefix (e.g. /backend) resolved to same-origin on Netlify via proxy */
+function resolveApiBase() {
+  const raw = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/+$/, '');
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const path = raw.startsWith('/') ? raw : `/${raw}`;
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}${path}`;
+  }
+  return 'http://localhost:3001';
+}
+
+const API_BASE = resolveApiBase();
 
 function isBrowserNetworkError(err) {
   if (err?.name !== 'TypeError') return false;
@@ -10,17 +21,17 @@ function wrapNetworkError(err) {
   if (!isBrowserNetworkError(err)) return null;
   if (import.meta.env.PROD) {
     return new Error(
-      `Cannot reach the API at ${API_URL}. In Netlify, set VITE_API_URL to your backend HTTPS URL and redeploy. On the API, set FRONTEND_URL to your Netlify site URL (comma-separated for multiple origins).`,
+      `Cannot reach the API at ${API_BASE}. Production should use same-origin /backend (see netlify.toml proxy) or a full https API URL in VITE_API_URL.`,
     );
   }
   return new Error(
-    `Cannot reach the API at ${API_URL}. Start the server in /server (e.g. npm run dev) or set VITE_API_URL in client/.env.`,
+    `Cannot reach the API at ${API_BASE}. Start the server in /server (e.g. npm run dev) or set VITE_API_URL in client/.env.`,
   );
 }
 
 async function fetchApi(path, options) {
   try {
-    return await fetch(`${API_URL}${path}`, options);
+    return await fetch(`${API_BASE}${path}`, options);
   } catch (err) {
     const wrapped = wrapNetworkError(err);
     throw wrapped || err;
