@@ -1,5 +1,27 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+function wrapNetworkError(err) {
+  const msg = String(err?.message || '');
+  if (err?.name !== 'TypeError' || !msg.toLowerCase().includes('fetch')) return null;
+  if (import.meta.env.PROD) {
+    return new Error(
+      `Cannot reach the API at ${API_URL}. In Netlify, set VITE_API_URL to your backend HTTPS URL and redeploy. On the API, set FRONTEND_URL to your Netlify site URL (comma-separated for multiple origins).`,
+    );
+  }
+  return new Error(
+    `Cannot reach the API at ${API_URL}. Start the server in /server (e.g. npm run dev) or set VITE_API_URL in client/.env.`,
+  );
+}
+
+async function fetchApi(path, options) {
+  try {
+    return await fetch(`${API_URL}${path}`, options);
+  } catch (err) {
+    const wrapped = wrapNetworkError(err);
+    throw wrapped || err;
+  }
+}
+
 async function request(path, options = {}) {
   const token = localStorage.getItem('access_token');
   const headers = { ...options.headers };
@@ -13,7 +35,7 @@ async function request(path, options = {}) {
     options.body = JSON.stringify(options.body);
   }
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const res = await fetchApi(path, { ...options, headers });
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
@@ -37,7 +59,7 @@ export const api = {
     const token = localStorage.getItem('access_token');
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
-    const res = await fetch(`${API_URL}${path}`, {
+    const res = await fetchApi(path, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
@@ -54,7 +76,7 @@ export const api = {
     const headers = { 'Content-Type': 'application/octet-stream', 'X-Filename': filename, ...extraHeaders };
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const res = await fetch(`${API_URL}${path}`, {
+    const res = await fetchApi(path, {
       method: 'POST',
       headers,
       body: buffer,
@@ -69,7 +91,7 @@ export const api = {
 
   stream: async function* (path, body) {
     const token = localStorage.getItem('access_token');
-    const res = await fetch(`${API_URL}${path}`, {
+    const res = await fetchApi(path, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

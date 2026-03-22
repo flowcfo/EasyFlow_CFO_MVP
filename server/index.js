@@ -22,8 +22,13 @@ import { startCronJobs } from './cron.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+function parseAllowedOrigins() {
+  const raw = process.env.FRONTEND_URL || 'http://localhost:5173';
+  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: parseAllowedOrigins(),
   credentials: true,
 }));
 
