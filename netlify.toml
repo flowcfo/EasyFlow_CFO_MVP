@@ -1,9 +1,12 @@
 # Client app in /client — build must run there so Vite copies public/_redirects → dist/_redirects
-# Set VITE_API_URL in Netlify → Environment variables (build) to your backend HTTPS origin, then redeploy.
 [build]
   base = "client"
   command = "npm ci && npm run build"
   publish = "dist"
+
+# Baked in for production; override in Netlify UI if you use branch deploys / another API.
+[build.environment]
+  VITE_API_URL = "https://easyflowcfomvp-production.up.railway.app"
 
 [[redirects]]
   from = "/*"
