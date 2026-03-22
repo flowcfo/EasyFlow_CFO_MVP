@@ -10,7 +10,7 @@ export default function Signup() {
   if (user) {
     return (
       <Navigate
-        to={user.user_type === 'partner' ? '/partner/dashboard' : '/app/dashboard'}
+        to={user.user_type === 'partner' ? '/partner/dashboard' : '/app/input'}
         replace
       />
     );
@@ -41,7 +41,7 @@ export default function Signup() {
         full_name: firstName,
         business_name: businessName,
       });
-      navigate('/app/dashboard', { replace: true });
+      navigate('/app/input', { replace: true });
     } catch (err) {
       setError(err.message || 'Signup failed');
     } finally {

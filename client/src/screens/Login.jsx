@@ -10,7 +10,7 @@ export default function Login() {
   if (user) {
     return (
       <Navigate
-        to={user.user_type === 'partner' ? '/partner/dashboard' : '/app/dashboard'}
+        to={user.user_type === 'partner' ? '/partner/dashboard' : '/app/input'}
         replace
       />
     );
@@ -33,7 +33,7 @@ export default function Login() {
       if (data.user?.user_type === 'partner') {
         navigate('/partner/dashboard', { replace: true });
       } else {
-        navigate('/app/dashboard', { replace: true });
+        navigate('/app/input', { replace: true });
       }
     } catch (err) {
       setError(err.message || 'Invalid email or password');

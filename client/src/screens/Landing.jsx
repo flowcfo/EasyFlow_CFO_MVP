@@ -32,7 +32,7 @@ export default function Landing() {
     if (user.user_type === 'partner') {
       navigate('/partner/dashboard', { replace: true });
     } else {
-      navigate('/app/dashboard', { replace: true });
+      navigate('/app/input', { replace: true });
     }
     return null;
   }

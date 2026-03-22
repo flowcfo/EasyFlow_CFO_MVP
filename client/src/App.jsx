@@ -41,7 +41,7 @@ import TierGate from './components/TierGate.jsx';
 function PartnerRoute({ children }) {
   const { user } = useAuth();
   if (user?.user_type !== 'partner') {
-    return <Navigate to="/app/dashboard" replace />;
+    return <Navigate to="/app/input" replace />;
   }
   return children;
 }
@@ -72,7 +72,7 @@ export default function App() {
         <Route path="/import/final-review" element={<ImportFinalReview />} />
 
         <Route path="/app" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route index element={<Navigate to="input" replace />} />
           {/* Free tier: Screens 1-3 */}
           <Route path="input" element={<InputEngine />} />
           <Route path="dashboard" element={<ProfitDashboard />} />
