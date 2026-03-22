@@ -10,7 +10,11 @@ export function useCalc() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.post('/calc/snapshot', { inputs });
+      const data = await api.post('/calc/snapshot', {
+        inputs,
+        label: 'Live preview',
+        skip_persist: true,
+      });
       return data;
     } catch (err) {
       setError(err.message);

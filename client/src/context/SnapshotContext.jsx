@@ -1,4 +1,10 @@
-import { createContext, useState, useEffect, useCallback, useRef } from 'react';
+import {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from 'react';
 import { api } from '../utils/api.js';
 import { getDefaultInputs } from '../../../shared/schema.js';
 
@@ -62,14 +68,16 @@ export function SnapshotProvider({ children }) {
     } catch { /* ignore */ }
   }, [monthlyHistory]);
 
-  async function calculate(inputData, label, periodType) {
+  const calculate = useCallback(async (inputData, label, periodType) => {
     setLoading(true);
     setError(null);
     try {
+      const isAuto = label === 'Auto';
       const data = await api.post('/calc/snapshot', {
         inputs: inputData || inputs,
         label,
         period_type: periodType,
+        ...(isAuto ? { skip_persist: true } : {}),
       });
       setOutputs(data.outputs);
       setInterpretation(data.interpretation);
@@ -80,19 +88,21 @@ export function SnapshotProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [inputs]);
 
-  // Auto-calculate when inputs exist (revenue > 0) but outputs are missing.
-  // This ensures any screen that reads `outputs` won't hang on a loading skeleton.
+  // Auto-calculate once defaults (or restored session inputs) are valid, even if revenue is still 0.
+  // Without this, dashboards wait forever on `!outputs` because the old guard required revenue > 0.
   const autoCalcInFlight = useRef(false);
   useEffect(() => {
-    if (!outputs && !loading && inputs && inputs.revenue > 0 && !autoCalcInFlight.current) {
+    if (!outputs && !loading && inputs && !error && !autoCalcInFlight.current) {
       autoCalcInFlight.current = true;
       calculate(inputs, 'Auto', 'annual')
         .catch(() => {})
-        .finally(() => { autoCalcInFlight.current = false; });
+        .finally(() => {
+          autoCalcInFlight.current = false;
+        });
     }
-  }, [outputs, loading, inputs]);
+  }, [outputs, loading, inputs, error, calculate]);
 
   const updateInputs = useCallback((updates) => {
     setInputs((prev) => ({ ...prev, ...updates }));

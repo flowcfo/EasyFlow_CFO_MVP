@@ -12,19 +12,29 @@ import FixQueueCard from '../components/FixQueueCard.jsx';
 import UnlockMap from '../components/UnlockMap.jsx';
 import AIChatPanel from '../components/AIChatPanel.jsx';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
+import SnapshotEmptyState from '../components/SnapshotEmptyState.jsx';
 import { formatCurrency, formatPercent } from '../utils/format.js';
 
 export default function ProfitDashboard() {
-  const { outputs, interpretation, loading } = useSnapshot();
+  const { outputs, interpretation, loading, error, calculate, inputs } = useSnapshot();
   const { gameProgress, completeAction } = useGame();
   const { user } = useAuth();
 
-  if (loading || !outputs) {
+  if (loading && !outputs) {
     return (
       <div className="space-y-6">
         <SkeletonCard />
         <SkeletonCard />
       </div>
+    );
+  }
+
+  if (!outputs) {
+    return (
+      <SnapshotEmptyState
+        error={error}
+        onRetry={() => calculate(inputs, 'Retry', 'annual')}
+      />
     );
   }
 

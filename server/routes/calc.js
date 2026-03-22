@@ -10,7 +10,7 @@ const router = Router();
 
 router.post('/snapshot', optionalAuth, async (req, res, next) => {
   try {
-    const { inputs, label, period_type } = req.body;
+    const { inputs, label, period_type, skip_persist } = req.body;
 
     const validation = validateInputs(inputs);
     if (!validation.valid) {
@@ -22,17 +22,18 @@ router.post('/snapshot', optionalAuth, async (req, res, next) => {
     let interpretation = null;
     const userTier = req.user?.tier || 'free';
     const hasPaid = userTier !== 'free';
-    if (hasPaid) {
+    // Background / preview runs: no DB writes, no paid AI (cost + avoid overwriting game_progress with defaults).
+    if (hasPaid && !skip_persist) {
       interpretation = await interpretScore(outputs, req.user?.user_type, req.brandName);
     } else {
       interpretation = {
         text: `Your Profit Score is ${outputs.profitScore.total_score} out of 100. Unlock the full AI interpretation with Clarity.`,
-        source: 'teaser',
+        source: skip_persist ? 'preview' : 'teaser',
       };
     }
 
     let snapshotId = null;
-    if (req.user) {
+    if (req.user && !skip_persist) {
       const { data: snapshot } = await supabaseAdmin
         .from('snapshots')
         .insert({
