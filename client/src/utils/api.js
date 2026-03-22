@@ -1,8 +1,13 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
+
+function isBrowserNetworkError(err) {
+  if (err?.name !== 'TypeError') return false;
+  const msg = String(err?.message || '').toLowerCase();
+  return msg.includes('fetch') || msg.includes('load failed') || msg.includes('networkerror');
+}
 
 function wrapNetworkError(err) {
-  const msg = String(err?.message || '');
-  if (err?.name !== 'TypeError' || !msg.toLowerCase().includes('fetch')) return null;
+  if (!isBrowserNetworkError(err)) return null;
   if (import.meta.env.PROD) {
     return new Error(
       `Cannot reach the API at ${API_URL}. In Netlify, set VITE_API_URL to your backend HTTPS URL and redeploy. On the API, set FRONTEND_URL to your Netlify site URL (comma-separated for multiple origins).`,

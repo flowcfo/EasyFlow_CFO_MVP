@@ -24,12 +24,14 @@ const PORT = process.env.PORT || 3001;
 
 function parseAllowedOrigins() {
   const raw = process.env.FRONTEND_URL || 'http://localhost:5173';
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  // Browser Origin never has a trailing slash; strip so https://app.netlify.app/ still matches.
+  return raw.split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean);
 }
 
+// Bearer tokens in Authorization — cookies not required; credentials:false avoids strict CORS + fetch mismatches.
 app.use(cors({
   origin: parseAllowedOrigins(),
-  credentials: true,
+  credentials: false,
 }));
 
 app.use(logSanitizer);
