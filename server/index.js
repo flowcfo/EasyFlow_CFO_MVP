@@ -34,6 +34,14 @@ app.use(cors({
   credentials: false,
 }));
 
+// Netlify (and some proxies) may forward the browser path including /backend; routes are mounted at /auth, /calc, etc.
+app.use((req, _res, next) => {
+  if (req.url === '/backend' || req.url.startsWith('/backend/') || req.url.startsWith('/backend?')) {
+    req.url = req.url.slice('/backend'.length) || '/';
+  }
+  next();
+});
+
 app.use(logSanitizer);
 
 app.post('/stripe/webhook', express.raw({ type: 'application/json' }));

@@ -8,14 +8,4 @@
 [build.environment]
   VITE_API_URL = "/backend"
 
-# Proxy must be listed BEFORE the SPA catch-all.
-[[redirects]]
-  from = "/backend/*"
-  to = "https://easyflowcfomvp-production.up.railway.app/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Redirects live in client/public/_redirects (copied to dist) so publish dir has one ordered list.
