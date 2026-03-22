@@ -519,7 +519,7 @@ function YearlyCharts({ years }) {
       </div>
 
       <div className="card-dark">
-        <h3 className="font-mulish text-xs uppercase tracking-wide text-stone mb-2">P&L Waterfall by Year</h3>
+        <h3 className="font-mulish text-xs uppercase tracking-wide text-stone mb-2">Easy Numbers P&L by Year</h3>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={years}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />

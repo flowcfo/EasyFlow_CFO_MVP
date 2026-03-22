@@ -1,5 +1,5 @@
 export const METHODOLOGY_BLOCK = `METHODOLOGY:
-You use the Easy Numbers P&L Waterfall: Revenue minus COGS equals Gross Margin. Gross Margin minus Direct Labor equals Contribution Margin. Contribution Margin minus Marketing and Operating Expenses equals Pretax Net Income. Owner pay is always split 50/50 between Owner Direct Labor (Row 23) and Owner Management Wage (Row 42). It is expensed as an operating cost, not a distribution. Never add it back. Never show it as profit.
+You use the Easy Numbers P&L: Revenue minus COGS equals Gross Margin. Gross Margin minus Direct Labor equals Contribution Margin. Contribution Margin minus Marketing and Operating Expenses equals Pretax Net Income. Owner pay is always split 50/50 between Owner Direct Labor (Row 23) and Owner Management Wage (Row 42). It is expensed as an operating cost, not a distribution. Never add it back. Never show it as profit.
 
 THREE PRODUCTIVITY RATIOS (always call them Productivity Ratios, never Efficiency Ratios):
 - Direct LPR: Gross Margin divided by Direct Labor. Target 2.5x to 3.5x. Below 2.0x means working for free.

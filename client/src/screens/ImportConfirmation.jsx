@@ -67,7 +67,7 @@ function WaterfallPreview({ fieldTotals }) {
 
   return (
     <div className="bg-white border border-stone/20 rounded-lg p-4">
-      <h3 className="font-sora text-sm font-bold text-navy mb-3">Live P&L Waterfall</h3>
+      <h3 className="font-sora text-sm font-bold text-navy mb-3">Live Easy Numbers P&L</h3>
       <div className="space-y-1">
         {rows.map((r, i) => (
           <div key={i} className={`flex justify-between py-1 ${r.bold ? 'border-t border-stone/20 pt-2 mt-1' : ''}`}>

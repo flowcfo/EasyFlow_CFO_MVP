@@ -88,7 +88,7 @@ export default function ProfitDashboard() {
           </div>
 
           <div className="card-dark">
-            <h3 className="font-sora text-lg font-semibold text-white mb-4">P&L Waterfall</h3>
+            <h3 className="font-sora text-lg font-semibold text-white mb-4">Easy Numbers P&L</h3>
             <div className="space-y-1">
               <WaterfallRow label="Revenue" value={w.total_revenue} percent={1} bold />
               <WaterfallRow label="Cost of Goods Sold" value={-w.total_cogs} percent={w.cogs_pct} indent={1} />
