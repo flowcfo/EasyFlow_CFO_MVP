@@ -22,6 +22,7 @@ import ProfitLeaksFinder from './screens/ProfitLeaksFinder.jsx';
 import FourForcesAllocator from './screens/FourForcesAllocator.jsx';
 import ScenarioModeler from './screens/ScenarioModeler.jsx';
 import TwelveMonthForecast from './screens/TwelveMonthForecast.jsx';
+import ForecastView from './screens/ForecastView.jsx';
 import Rolling12Screen from './screens/Rolling12Screen.jsx';
 import HireCalculator from './screens/HireCalculator.jsx';
 import PricingCalculator from './screens/PricingCalculator.jsx';
@@ -41,7 +42,7 @@ import TierGate from './components/TierGate.jsx';
 function PartnerRoute({ children }) {
   const { user } = useAuth();
   if (user?.user_type !== 'partner') {
-    return <Navigate to="/app/input" replace />;
+    return <Navigate to="/app/dashboard" replace />;
   }
   return children;
 }
@@ -81,7 +82,8 @@ export default function App() {
           <Route path="breakeven" element={<TierGate required="clarity"><BreakevenCalculator /></TierGate>} />
           <Route path="productivity" element={<TierGate required="clarity"><ProductivityScorecard /></TierGate>} />
           <Route path="leaks" element={<TierGate required="clarity"><ProfitLeaksFinder /></TierGate>} />
-          <Route path="forecast" element={<TierGate required="clarity"><TwelveMonthForecast /></TierGate>} />
+          <Route path="forecast" element={<TierGate required="clarity"><ForecastView /></TierGate>} />
+          <Route path="forecast-classic" element={<TierGate required="clarity"><TwelveMonthForecast /></TierGate>} />
           <Route path="rolling12" element={<TierGate required="clarity"><Rolling12Screen /></TierGate>} />
           <Route path="pricing" element={<TierGate required="clarity"><PricingCalculator /></TierGate>} />
           {/* Control tier ($49.99): Planning + AI */}

@@ -1,31 +1,43 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth.js';
 
 export default function EmailCapture() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signup } = useAuth();
+  const { user, loading: authLoading, signup } = useAuth();
+
+  const rawNext = searchParams.get('next') || '/onboard/reveal';
+  const isOnboardingPath = rawNext.startsWith('/onboard/');
+
+  // Already logged in — skip this screen
+  if (!authLoading && user) {
+    const dest = user.user_type === 'partner'
+      ? '/partner/dashboard'
+      : (isOnboardingPath ? '/app/dashboard' : rawNext);
+    return <Navigate to={dest} replace />;
+  }
+
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const nextPath = searchParams.get('next') || '/onboard/reveal';
-
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Email and password are required');
-      return;
-    }
+    if (!email || !password) { setError('Email and password are required'); return; }
     setLoading(true);
     setError('');
     try {
-      await signup({ email, password, full_name: firstName });
-      navigate(nextPath);
+      const data = await signup({ email, password, full_name: firstName });
+      // New signups go to dashboard — uploaded inputs are already in sessionStorage
+      // and the auto-calculate will fire once authenticated.
+      const dest = data?.user?.user_type === 'partner'
+        ? '/partner/dashboard'
+        : '/app/dashboard';
+      navigate(dest);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -41,10 +53,10 @@ export default function EmailCapture() {
         animate={{ opacity: 1, y: 0 }}
       >
         <h2 className="font-sora text-2xl font-bold text-white text-center mb-2">
-          Where should we send your Profit Score?
+          Save your Profit Score
         </h2>
         <p className="font-mulish text-sm text-stone text-center mb-8">
-          Create your free account to see your results.
+          Create a free account to see your results and keep your data.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -78,13 +90,28 @@ export default function EmailCapture() {
           {error && <p className="text-status-red text-sm font-mulish">{error}</p>}
 
           <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-            {loading ? 'Creating account...' : 'Continue'}
+            {loading ? 'Creating account...' : 'Create free account'}
           </button>
         </form>
 
-        <button onClick={() => navigate(-1)} className="btn-ghost w-full mt-3 text-sm text-stone/60 hover:text-white">
-          &larr; Back
-        </button>
+        {/* Returning user path — data is preserved in sessionStorage, so login works too */}
+        <div className="mt-5 text-center space-y-2">
+          <p className="font-mulish text-sm text-stone">
+            Already have an account?{' '}
+            <Link
+              to={`/login?next=/app/dashboard`}
+              className="text-orange hover:underline font-semibold"
+            >
+              Log in instead →
+            </Link>
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="font-mulish text-sm text-stone/60 hover:text-white transition"
+          >
+            ← Back
+          </button>
+        </div>
       </motion.div>
     </div>
   );

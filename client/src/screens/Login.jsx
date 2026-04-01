@@ -1,20 +1,21 @@
 import { useState } from 'react';
-import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth.js';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, login } = useAuth();
 
+  // ?next= allows post-login redirect (e.g. from email capture gate)
+  const next = searchParams.get('next');
+
   if (user) {
-    return (
-      <Navigate
-        to={user.user_type === 'partner' ? '/partner/dashboard' : '/app/input'}
-        replace
-      />
-    );
+    const dest = user.user_type === 'partner' ? '/partner/dashboard' : (next || '/app/dashboard');
+    return <Navigate to={dest} replace />;
   }
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,10 +23,7 @@ export default function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Email and password are required');
-      return;
-    }
+    if (!email || !password) { setError('Email and password are required'); return; }
     setLoading(true);
     setError('');
     try {
@@ -33,7 +31,7 @@ export default function Login() {
       if (data.user?.user_type === 'partner') {
         navigate('/partner/dashboard', { replace: true });
       } else {
-        navigate('/app/input', { replace: true });
+        navigate(next || '/app/dashboard', { replace: true });
       }
     } catch (err) {
       setError(err.message || 'Invalid email or password');
@@ -85,13 +83,9 @@ export default function Login() {
         <div className="mt-6 text-center space-y-2">
           <p className="font-mulish text-sm text-stone">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-orange hover:underline font-semibold">
-              Sign up
-            </Link>
+            <Link to="/signup" className="text-orange hover:underline font-semibold">Sign up free</Link>
           </p>
-          <Link to="/" className="font-mulish text-sm text-stone/60 hover:text-white block">
-            &larr; Back to home
-          </Link>
+          <Link to="/" className="font-mulish text-sm text-stone/60 hover:text-white block">← Back to home</Link>
         </div>
       </motion.div>
     </div>
