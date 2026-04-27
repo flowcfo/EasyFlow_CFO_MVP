@@ -1,6 +1,9 @@
 import { Router } from 'express';
+import path from 'path';
 import { authGuard, optionalAuth } from '../middleware/authGuard.js';
+import { uploadLimiter } from '../middleware/rateLimiter.js';
 import { supabaseAdmin } from '../db/supabase.js';
+import { consumeOAuthNonce } from '../integrations/oauthNonce.js';
 
 // QBO
 import { getAuthorizationUrl as qboAuthUrl, handleCallback as qboCallback, revokeTokens as qboRevoke, getIntegrationStatus as qboStatus } from '../integrations/qbo/auth.js';
@@ -76,10 +79,9 @@ router.get('/status', authGuard, async (req, res, next) => {
 });
 
 // ==================== QBO ====================
-router.get('/qbo/connect', authGuard, (req, res, next) => {
+router.get('/qbo/connect', authGuard, async (req, res, next) => {
   try {
-    const state = Buffer.from(JSON.stringify({ user_id: req.user.id })).toString('base64');
-    const authUrl = qboAuthUrl(state);
+    const authUrl = await qboAuthUrl(req.user.id);
     res.json({ url: authUrl });
   } catch (err) {
     next(err);
@@ -87,14 +89,13 @@ router.get('/qbo/connect', authGuard, (req, res, next) => {
 });
 
 router.get('/qbo/callback', async (req, res, next) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   try {
-    const state = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
+    const userId = await consumeOAuthNonce(req.query.state, 'qbo');
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-    await qboCallback(url, state.user_id);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    await qboCallback(url, userId);
     res.redirect(`${frontendUrl}/onboard/qbo?connected=true`);
   } catch (err) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/onboard/qbo?error=connection_failed`);
   }
 });
@@ -165,22 +166,21 @@ router.get('/qbo/status', authGuard, async (req, res, next) => {
 });
 
 // ==================== XERO ====================
-router.get('/xero/connect', authGuard, (req, res, next) => {
+router.get('/xero/connect', authGuard, async (req, res, next) => {
   try {
-    res.json({ url: xeroAuthUrl(req.user.id) });
+    res.json({ url: await xeroAuthUrl(req.user.id) });
   } catch (err) {
     next(err);
   }
 });
 
 router.get('/xero/callback', async (req, res, next) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   try {
-    const userId = req.query.state;
+    const userId = await consumeOAuthNonce(req.query.state, 'xero');
     await xeroExchange(req.query.code, userId);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?provider=xero&connected=true`);
   } catch (err) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?error=xero_connection_failed`);
   }
 });
@@ -205,22 +205,21 @@ router.delete('/xero/disconnect', authGuard, async (req, res, next) => {
 });
 
 // ==================== FRESHBOOKS ====================
-router.get('/freshbooks/connect', authGuard, (req, res, next) => {
+router.get('/freshbooks/connect', authGuard, async (req, res, next) => {
   try {
-    res.json({ url: freshbooksAuthUrl(req.user.id) });
+    res.json({ url: await freshbooksAuthUrl(req.user.id) });
   } catch (err) {
     next(err);
   }
 });
 
 router.get('/freshbooks/callback', async (req, res, next) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   try {
-    const userId = req.query.state;
+    const userId = await consumeOAuthNonce(req.query.state, 'freshbooks');
     await freshbooksExchange(req.query.code, userId);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?provider=freshbooks&connected=true`);
   } catch (err) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?error=freshbooks_connection_failed`);
   }
 });
@@ -245,22 +244,21 @@ router.delete('/freshbooks/disconnect', authGuard, async (req, res, next) => {
 });
 
 // ==================== WAVE ====================
-router.get('/wave/connect', authGuard, (req, res, next) => {
+router.get('/wave/connect', authGuard, async (req, res, next) => {
   try {
-    res.json({ url: waveAuthUrl(req.user.id) });
+    res.json({ url: await waveAuthUrl(req.user.id) });
   } catch (err) {
     next(err);
   }
 });
 
 router.get('/wave/callback', async (req, res, next) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   try {
-    const userId = req.query.state;
+    const userId = await consumeOAuthNonce(req.query.state, 'wave');
     await waveExchange(req.query.code, userId);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?provider=wave&connected=true`);
   } catch (err) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?error=wave_connection_failed`);
   }
 });
@@ -285,22 +283,21 @@ router.delete('/wave/disconnect', authGuard, async (req, res, next) => {
 });
 
 // ==================== SAGE ====================
-router.get('/sage/connect', authGuard, (req, res, next) => {
+router.get('/sage/connect', authGuard, async (req, res, next) => {
   try {
-    res.json({ url: sageAuthUrl(req.user.id) });
+    res.json({ url: await sageAuthUrl(req.user.id) });
   } catch (err) {
     next(err);
   }
 });
 
 router.get('/sage/callback', async (req, res, next) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   try {
-    const userId = req.query.state;
+    const userId = await consumeOAuthNonce(req.query.state, 'sage');
     await sageExchange(req.query.code, userId);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?provider=sage&connected=true`);
   } catch (err) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?error=sage_connection_failed`);
   }
 });
@@ -325,22 +322,21 @@ router.delete('/sage/disconnect', authGuard, async (req, res, next) => {
 });
 
 // ==================== ZOHO ====================
-router.get('/zoho/connect', authGuard, (req, res, next) => {
+router.get('/zoho/connect', authGuard, async (req, res, next) => {
   try {
-    res.json({ url: zohoAuthUrl(req.user.id) });
+    res.json({ url: await zohoAuthUrl(req.user.id) });
   } catch (err) {
     next(err);
   }
 });
 
 router.get('/zoho/callback', async (req, res, next) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   try {
-    const userId = req.query.state;
+    const userId = await consumeOAuthNonce(req.query.state, 'zoho');
     await zohoExchange(req.query.code, userId);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?provider=zoho&connected=true`);
   } catch (err) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/app/input?error=zoho_connection_failed`);
   }
 });
@@ -448,14 +444,21 @@ router.delete('/demo/disconnect', authGuard, async (req, res, next) => {
 
 // ==================== EXCEL/CSV UPLOAD ====================
 
+const ALLOWED_UPLOAD_EXTS = new Set(['.xlsx', '.xls', '.csv']);
+
 // Step 1: Upload and parse → returns confirmation data for the frontend
-router.post('/excel/upload', async (req, res, next) => {
+router.post('/excel/upload', authGuard, uploadLimiter, async (req, res, next) => {
   try {
     if (!req.body || !Buffer.isBuffer(req.body)) {
       return res.status(400).json({ error: 'File upload required' });
     }
 
-    const filename = req.headers['x-filename'] || 'upload.xlsx';
+    const filename = String(req.headers['x-filename'] || 'upload.xlsx');
+    const ext = path.extname(filename).toLowerCase();
+    if (!ALLOWED_UPLOAD_EXTS.has(ext)) {
+      return res.status(400).json({ error: 'Unsupported file type. Allowed: .xlsx, .xls, .csv' });
+    }
+
     const businessType = req.headers['x-business-type'] || '';
     const result = await parseExcelFile(req.body, filename, businessType);
     res.json({ ...result, provider: 'excel' });
@@ -529,11 +532,31 @@ router.post('/qbo/parse-for-confirmation', optionalAuth, async (req, res, next) 
 
 // ==================== P&L TEMPLATE WRITER ====================
 
+// Allowlisted base dirs for template I/O. TEMPLATE_DIR holds source xlsx files; OUTPUT_DIR holds generated copies.
+// Defaults match the existing local dev path so nothing breaks; production should set both env vars to absolute paths.
+const TEMPLATE_DIR = path.resolve(process.env.TEMPLATE_DIR || 'C:/Users/nmarc/EasyFlowCFO/templates');
+const OUTPUT_DIR = path.resolve(process.env.TEMPLATE_OUTPUT_DIR || 'C:/Users/nmarc/EasyFlowCFO/outputs');
+
+function safeResolveUnder(baseDir, userPath) {
+  if (!userPath) return null;
+  const candidate = path.resolve(baseDir, String(userPath));
+  // Ensure resolved path is inside baseDir (prevents ../../../ traversal). Trailing sep avoids /foo matching /foobar.
+  const baseWithSep = baseDir.endsWith(path.sep) ? baseDir : baseDir + path.sep;
+  if (candidate !== baseDir && !candidate.startsWith(baseWithSep)) return null;
+  if (path.extname(candidate).toLowerCase() !== '.xlsx') return null;
+  return candidate;
+}
+
 // Fix known issues in the template (standalone)
-router.post('/template/fix', optionalAuth, async (req, res, next) => {
+router.post('/template/fix', authGuard, async (req, res, next) => {
   try {
-    const templatePath = req.body.template_path;
-    const result = await fixTemplate(templatePath);
+    if (req.body.template_path) {
+      const safe = safeResolveUnder(TEMPLATE_DIR, req.body.template_path);
+      if (!safe) return res.status(400).json({ error: 'Invalid template_path' });
+      const result = await fixTemplate(safe);
+      return res.json(result);
+    }
+    const result = await fixTemplate();
     res.json(result);
   } catch (err) {
     next(err);
@@ -541,7 +564,7 @@ router.post('/template/fix', optionalAuth, async (req, res, next) => {
 });
 
 // Map accounts to template rows (dry run)
-router.post('/template/map-preview', optionalAuth, async (req, res, next) => {
+router.post('/template/map-preview', authGuard, async (req, res, next) => {
   try {
     const { accounts } = req.body;
     if (!accounts || !Array.isArray(accounts)) {
@@ -555,7 +578,7 @@ router.post('/template/map-preview', optionalAuth, async (req, res, next) => {
 });
 
 // Write finalized Easy Numbers inputs to the P&L template
-router.post('/template/write', optionalAuth, async (req, res, next) => {
+router.post('/template/write', authGuard, async (req, res, next) => {
   try {
     const {
       inputs,
@@ -571,14 +594,24 @@ router.post('/template/write', optionalAuth, async (req, res, next) => {
       return res.status(400).json({ error: 'inputs object required' });
     }
 
-    const result = await writeEasyNumbersToTemplate(inputs, {
-      templatePath: template_path,
-      outputPath: output_path,
+    const writeOpts = {
       overwriteExisting: overwrite_existing || false,
       businessType: business_type || 'unknown',
       directLaborPct: direct_labor_pct,
       months: months || [],
-    });
+    };
+    if (template_path) {
+      const safe = safeResolveUnder(TEMPLATE_DIR, template_path);
+      if (!safe) return res.status(400).json({ error: 'Invalid template_path' });
+      writeOpts.templatePath = safe;
+    }
+    if (output_path) {
+      const safe = safeResolveUnder(OUTPUT_DIR, output_path);
+      if (!safe) return res.status(400).json({ error: 'Invalid output_path' });
+      writeOpts.outputPath = safe;
+    }
+
+    const result = await writeEasyNumbersToTemplate(inputs, writeOpts);
 
     res.json({ ...result, provider: 'template' });
   } catch (err) {

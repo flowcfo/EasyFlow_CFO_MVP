@@ -1,5 +1,6 @@
 import OAuthClient from 'intuit-oauth';
 import { supabaseAdmin } from '../../db/supabase.js';
+import { createOAuthNonce } from '../oauthNonce.js';
 
 let oauthClient = null;
 
@@ -15,8 +16,9 @@ function getOAuthClient() {
   return oauthClient;
 }
 
-export function getAuthorizationUrl(state) {
+export async function getAuthorizationUrl(userId) {
   const client = getOAuthClient();
+  const state = await createOAuthNonce(userId, 'qbo');
   return client.authorizeUri({
     scope: [OAuthClient.scopes.Accounting],
     state,

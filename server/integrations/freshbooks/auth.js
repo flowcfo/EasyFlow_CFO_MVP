@@ -4,11 +4,13 @@
  */
 
 import { supabaseAdmin } from '../../db/supabase.js';
+import { createOAuthNonce } from '../oauthNonce.js';
 
 const FB_AUTH_URL = 'https://auth.freshbooks.com/oauth/authorize';
 const FB_TOKEN_URL = 'https://api.freshbooks.com/auth/oauth/token';
 
-export function getAuthorizationUrl(state) {
+export async function getAuthorizationUrl(userId) {
+  const state = await createOAuthNonce(userId, 'freshbooks');
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: process.env.FRESHBOOKS_CLIENT_ID,

@@ -272,3 +272,31 @@ create trigger game_progress_updated
 -- Foreign key: users.managed_by_partner_id -> partners.id
 alter table users add constraint fk_users_managed_by_partner
   foreign key (managed_by_partner_id) references partners(id) on delete set null;
+
+-- 13. OAUTH NONCES (CSRF protection for provider auth callbacks)
+create table if not exists oauth_nonces (
+  nonce text primary key,
+  user_id uuid not null references users(id) on delete cascade,
+  provider text not null check (provider in ('qbo','xero','freshbooks','wave','sage','zoho')),
+  expires_at timestamptz not null default (now() + interval '10 minutes'),
+  created_at timestamptz not null default now()
+);
+
+create index idx_oauth_nonces_expires on oauth_nonces(expires_at);
+
+alter table oauth_nonces enable row level security;
+create policy "Service role full access to oauth_nonces" on oauth_nonces for all using (auth.role() = 'service_role');
+
+-- 14. PARTNER ACCESS TOKENS (single-use, server-verified tokens for partner→client access)
+create table if not exists partner_access_tokens (
+  token_hash text primary key,
+  partner_id uuid not null references partners(id) on delete cascade,
+  client_user_id uuid not null references users(id) on delete cascade,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+create index idx_partner_access_tokens_expires on partner_access_tokens(expires_at);
+
+alter table partner_access_tokens enable row level security;
+create policy "Service role full access to partner_access_tokens" on partner_access_tokens for all using (auth.role() = 'service_role');

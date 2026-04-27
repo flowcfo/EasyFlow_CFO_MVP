@@ -5,11 +5,13 @@
  */
 
 import { supabaseAdmin } from '../../db/supabase.js';
+import { createOAuthNonce } from '../oauthNonce.js';
 
 const XERO_AUTH_URL = 'https://login.xero.com/identity/connect/authorize';
 const XERO_TOKEN_URL = 'https://identity.xero.com/connect/token';
 
-export function getAuthorizationUrl(state) {
+export async function getAuthorizationUrl(userId) {
+  const state = await createOAuthNonce(userId, 'xero');
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: process.env.XERO_CLIENT_ID,

@@ -3,6 +3,15 @@ import { supabaseAdmin } from '../db/supabase.js';
 
 const ACCESS_TOKEN_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
 
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+/**
+ * Issue a single-use partner→client access token.
+ * The raw token is returned to the partner; only its sha256 hash is stored.
+ * verifyClientAccessToken consumes the token (delete on use) and returns the bound IDs.
+ */
 export async function generateClientAccessToken(partnerId, clientUserId) {
   const { data: clientRecord, error } = await supabaseAdmin
     .from('partner_clients')
@@ -20,18 +29,54 @@ export async function generateClientAccessToken(partnerId, clientUserId) {
   }
 
   const token = crypto.randomBytes(32).toString('hex');
+  const tokenHash = hashToken(token);
   const expiresAt = new Date(Date.now() + ACCESS_TOKEN_EXPIRY_MS);
 
-  // Store in a simple in-memory cache or could use Redis/DB
-  // For MVP, we return a signed JWT-like token
-  const accessPayload = {
-    partner_id: partnerId,
-    client_user_id: clientUserId,
+  const { error: insertErr } = await supabaseAdmin
+    .from('partner_access_tokens')
+    .insert({
+      token_hash: tokenHash,
+      partner_id: partnerId,
+      client_user_id: clientUserId,
+      expires_at: expiresAt.toISOString(),
+    });
+
+  if (insertErr) throw new Error(`Failed to issue access token: ${insertErr.message}`);
+
+  return {
     token,
     expires_at: expiresAt.toISOString(),
   };
+}
 
-  return accessPayload;
+/**
+ * Verify and consume a partner→client access token.
+ * Single use: deletes the row on successful verification.
+ */
+export async function verifyClientAccessToken(token) {
+  if (!token || typeof token !== 'string') throw new Error('Invalid access token');
+
+  const tokenHash = hashToken(token);
+
+  const { data, error } = await supabaseAdmin
+    .from('partner_access_tokens')
+    .select('partner_id, client_user_id, expires_at')
+    .eq('token_hash', tokenHash)
+    .single();
+
+  if (error || !data) throw new Error('Invalid or expired access token');
+
+  if (new Date(data.expires_at).getTime() < Date.now()) {
+    await supabaseAdmin.from('partner_access_tokens').delete().eq('token_hash', tokenHash);
+    throw new Error('Access token expired');
+  }
+
+  await supabaseAdmin.from('partner_access_tokens').delete().eq('token_hash', tokenHash);
+
+  return {
+    partner_id: data.partner_id,
+    client_user_id: data.client_user_id,
+  };
 }
 
 export async function inviteClient(partnerId, inviteData) {

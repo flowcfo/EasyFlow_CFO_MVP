@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -17,7 +18,14 @@ import partnerRoutes from './routes/partner.js';
 import rolling12Routes from './routes/rolling12.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { logSanitizer } from './middleware/logSanitizer.js';
+import { globalLimiter } from './middleware/rateLimiter.js';
 import { startCronJobs } from './cron.js';
+
+// Fail fast in production if conversation encryption key is missing — silent failures are worse than a crash.
+if (process.env.NODE_ENV === 'production' && !process.env.CONVERSATION_ENCRYPTION_KEY) {
+  console.error('FATAL: CONVERSATION_ENCRYPTION_KEY must be set in production. Refusing to start.');
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -27,6 +35,9 @@ function parseAllowedOrigins() {
   // Browser Origin never has a trailing slash; strip so https://app.netlify.app/ still matches.
   return raw.split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean);
 }
+
+// Pure JSON API — no inline scripts to whitelist. Disable CSP defaults that complicate API responses; keep the rest.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 
 // Bearer tokens in Authorization — cookies not required; credentials:false avoids strict CORS + fetch mismatches.
 app.use(cors({
@@ -43,6 +54,12 @@ app.use((req, _res, next) => {
 });
 
 app.use(logSanitizer);
+
+// Global IP-based throttle. Skip /health (Railway probes) and the Stripe webhook (signed by Stripe IPs we cannot rate-limit).
+app.use((req, res, next) => {
+  if (req.path === '/health' || req.path === '/stripe/webhook') return next();
+  return globalLimiter(req, res, next);
+});
 
 app.post('/stripe/webhook', express.raw({ type: 'application/json' }));
 

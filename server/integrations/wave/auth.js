@@ -5,11 +5,13 @@
  */
 
 import { supabaseAdmin } from '../../db/supabase.js';
+import { createOAuthNonce } from '../oauthNonce.js';
 
 const WAVE_AUTH_URL = 'https://api.waveapps.com/oauth2/authorize/';
 const WAVE_TOKEN_URL = 'https://api.waveapps.com/oauth2/token/';
 
-export function getAuthorizationUrl(state) {
+export async function getAuthorizationUrl(userId) {
+  const state = await createOAuthNonce(userId, 'wave');
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: process.env.WAVE_CLIENT_ID,

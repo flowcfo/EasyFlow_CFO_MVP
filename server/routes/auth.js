@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../db/supabase.js';
 import { authGuard } from '../middleware/authGuard.js';
+import { authLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
-router.post('/signup', async (req, res, next) => {
+router.post('/signup', authLimiter, async (req, res, next) => {
   try {
     const { email, password, full_name, business_name, revenue_band, industry, partner_id } = req.body;
 
@@ -76,7 +77,7 @@ router.post('/signup', async (req, res, next) => {
   }
 });
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', authLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -134,6 +135,10 @@ router.get('/partner-brand/:partnerId', async (req, res, next) => {
 
 router.post('/demo-upgrade', authGuard, async (req, res, next) => {
   try {
+    // Dev-only: lets us preview tier-gated screens without Stripe. Production must go through /stripe/checkout.
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({ error: 'Not found' });
+    }
     const { tier } = req.body;
     const validTiers = ['free', 'clarity', 'control', 'harvest'];
     if (!validTiers.includes(tier)) {

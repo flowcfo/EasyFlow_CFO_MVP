@@ -1,15 +1,17 @@
 import { supabaseAdmin } from '../../db/supabase.js';
+import { createOAuthNonce } from '../oauthNonce.js';
 
 const ZOHO_AUTH_URL = 'https://accounts.zoho.com/oauth/v2/auth';
 const ZOHO_TOKEN_URL = 'https://accounts.zoho.com/oauth/v2/token';
 
-export function getAuthorizationUrl(userId) {
+export async function getAuthorizationUrl(userId) {
+  const state = await createOAuthNonce(userId, 'zoho');
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: process.env.ZOHO_CLIENT_ID,
     scope: 'ZohoBooks.fullaccess.READ',
     redirect_uri: process.env.ZOHO_REDIRECT_URI,
-    state: userId,
+    state,
     access_type: 'offline',
     prompt: 'consent',
   });

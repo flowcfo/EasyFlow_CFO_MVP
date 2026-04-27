@@ -4,11 +4,13 @@
  */
 
 import { supabaseAdmin } from '../../db/supabase.js';
+import { createOAuthNonce } from '../oauthNonce.js';
 
 const SAGE_AUTH_URL = 'https://www.sageone.com/oauth2/auth/central?filter=apiv3.1';
 const SAGE_TOKEN_URL = 'https://oauth.accounting.sage.com/token';
 
-export function getAuthorizationUrl(state) {
+export async function getAuthorizationUrl(userId) {
+  const state = await createOAuthNonce(userId, 'sage');
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: process.env.SAGE_CLIENT_ID,
