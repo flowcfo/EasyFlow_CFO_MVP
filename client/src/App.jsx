@@ -2,16 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './hooks/useAuth.js';
 
-import Landing from './screens/Landing.jsx';
 import Login from './screens/Login.jsx';
-import Signup from './screens/Signup.jsx';
-import OnboardUpload from './screens/OnboardUpload.jsx';
-import OnboardQBO from './screens/OnboardQBO.jsx';
-import OnboardManual from './screens/OnboardManual.jsx';
-import EmailCapture from './screens/EmailCapture.jsx';
-import ScoreReveal from './screens/ScoreReveal.jsx';
-import ImportConfirmation from './screens/ImportConfirmation.jsx';
-import ImportFinalReview from './screens/ImportFinalReview.jsx';
+import ForgotPassword from './screens/ForgotPassword.jsx';
+import ResetPassword from './screens/ResetPassword.jsx';
+import SetPassword from './screens/SetPassword.jsx';
 
 import InputEngine from './screens/InputEngine.jsx';
 import ProfitDashboard from './screens/ProfitDashboard.jsx';
@@ -34,6 +28,7 @@ import IntegrationHub from './screens/IntegrationHub.jsx';
 import PartnerDashboard from './partner/PartnerDashboard.jsx';
 import WhiteLabelSettings from './partner/WhiteLabelSettings.jsx';
 import AddonSettings from './partner/AddonSettings.jsx';
+import ClientWorkbench from './partner/ClientWorkbench.jsx';
 
 import DashboardLayout from './components/DashboardLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -61,16 +56,15 @@ export default function App() {
   return (
     <AnimatePresence mode="wait">
       <Routes>
-        <Route path="/" element={<Landing />} />
+        {/* Public auth flow. No self-signup, no scorecard funnel. */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/onboard/upload" element={<OnboardUpload />} />
-        <Route path="/onboard/qbo" element={<OnboardQBO />} />
-        <Route path="/onboard/manual" element={<OnboardManual />} />
-        <Route path="/onboard/email" element={<EmailCapture />} />
-        <Route path="/onboard/reveal" element={<ScoreReveal />} />
-        <Route path="/import/confirm" element={<ImportConfirmation />} />
-        <Route path="/import/final-review" element={<ImportFinalReview />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/set-password" element={<SetPassword />} />
+
+        {/* Self-signup is disabled. Inbound /signup links land on Login with a closed-access banner. */}
+        <Route path="/signup" element={<Navigate to="/login?closed=1" replace />} />
 
         <Route path="/app" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="input" replace />} />
@@ -104,8 +98,31 @@ export default function App() {
           <Route path="dashboard" element={<PartnerRoute><PartnerDashboard /></PartnerRoute>} />
           <Route path="whitelabel" element={<PartnerRoute><WhiteLabelSettings /></PartnerRoute>} />
           <Route path="addons" element={<PartnerRoute><AddonSettings /></PartnerRoute>} />
-          <Route path="client/:clientId" element={<PartnerRoute><ProfitDashboard /></PartnerRoute>} />
+
+          {/* Per-client CFO workbench. All 14 Easy Numbers screens, scoped to a client's draft. */}
+          <Route path="client/:clientId" element={<PartnerRoute><ClientWorkbench /></PartnerRoute>}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="input" element={<InputEngine />} />
+            <Route path="dashboard" element={<ProfitDashboard />} />
+            <Route path="owner-pay-gap" element={<OwnerPayGap />} />
+            <Route path="breakeven" element={<BreakevenCalculator />} />
+            <Route path="productivity" element={<ProductivityScorecard />} />
+            <Route path="leaks" element={<ProfitLeaksFinder />} />
+            <Route path="forecast" element={<ForecastView />} />
+            <Route path="forecast-classic" element={<TwelveMonthForecast />} />
+            <Route path="rolling12" element={<Rolling12Screen />} />
+            <Route path="pricing" element={<PricingCalculator />} />
+            <Route path="four-forces" element={<FourForcesAllocator />} />
+            <Route path="scenarios" element={<ScenarioModeler />} />
+            <Route path="action-plan" element={<ActionPlan />} />
+            <Route path="hire" element={<HireCalculator />} />
+            <Route path="weekly" element={<WeeklyScorecard />} />
+            <Route path="pay-roadmap" element={<OwnerPayRoadmap />} />
+          </Route>
         </Route>
+
+        {/* Anything unknown sends to login. */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </AnimatePresence>
   );

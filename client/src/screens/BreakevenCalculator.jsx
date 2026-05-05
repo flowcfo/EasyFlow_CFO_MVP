@@ -1,11 +1,11 @@
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import { formatCurrency, formatPercent } from '../utils/format.js';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
 
 const COLUMN_LABELS = ['Breakeven', '+3% Profit', '+5% Profit', '+10% Profit', '+15% Profit'];
 
 export default function BreakevenCalculator() {
-  const { outputs, loading } = useSnapshot();
+  const { outputs, loading } = useWorkbench();
 
   if (loading || !outputs) return <SkeletonCard count={2} />;
 

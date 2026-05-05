@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { formatCurrency, formatPercent } from '../utils/format.js';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
@@ -8,7 +8,7 @@ import SnapshotEmptyState from '../components/SnapshotEmptyState.jsx';
 
 export default function OwnerPayGap() {
   const navigate = useNavigate();
-  const { outputs, loading, error, calculate, inputs } = useSnapshot();
+  const { outputs, loading, error, calculate, inputs } = useWorkbench();
   const { user } = useAuth();
 
   if (loading && !outputs) {

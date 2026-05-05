@@ -16,7 +16,7 @@ export default function ClientCard({ client }) {
     <div
       className="bg-navy-light rounded-xl p-4 border-l-4 cursor-pointer hover:bg-navy-light/80 transition"
       style={{ borderLeftColor: tierColor }}
-      onClick={() => navigate(`/partner/client/${client.client_user_id}`)}
+      onClick={() => navigate(`/partner/client/${client.client_user_id}/dashboard`)}
     >
       <div className="flex items-start justify-between mb-3">
         <div>

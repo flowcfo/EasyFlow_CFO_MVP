@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, ReferenceLine, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { useAuth } from '../hooks/useAuth.js';
 import InputField from '../components/InputField.jsx';
@@ -9,6 +10,27 @@ import { api } from '../utils/api.js';
 
 export default function WeeklyScorecard() {
   const { user } = useAuth();
+  const location = useLocation();
+  const { clientId } = useParams();
+
+  // In partner workbench mode, talk to the per-client weekly endpoints so
+  // entries belong to the client we're working on, not to the partner.
+  const isWorkbench = location.pathname.startsWith('/partner/client/') && clientId;
+  const endpoints = useMemo(() => {
+    if (isWorkbench) {
+      return {
+        entries: `/partner/clients/${clientId}/weekly/entries`,
+        summary: `/partner/clients/${clientId}/weekly/summary`,
+        entry: `/partner/clients/${clientId}/weekly/entry`,
+      };
+    }
+    return {
+      entries: '/weekly/entries',
+      summary: '/weekly/summary',
+      entry: '/weekly/entry',
+    };
+  }, [isWorkbench, clientId]);
+
   const [entries, setEntries] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,13 +39,13 @@ export default function WeeklyScorecard() {
     revenue: 0, cogs: 0, direct_labor: 0, marketing: 0, notes: '',
   });
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [endpoints.entries, endpoints.summary]);
 
   async function loadData() {
     try {
       const [entriesData, summaryData] = await Promise.all([
-        api.get('/weekly/entries'),
-        api.get('/weekly/summary'),
+        api.get(endpoints.entries),
+        api.get(endpoints.summary),
       ]);
       setEntries(entriesData.entries || []);
       setSummary(summaryData);
@@ -36,7 +58,7 @@ export default function WeeklyScorecard() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      await api.post('/weekly/entry', form);
+      await api.post(endpoints.entry, form);
       await loadData();
       setForm({ ...form, revenue: 0, cogs: 0, direct_labor: 0, marketing: 0, notes: '' });
     } catch {}

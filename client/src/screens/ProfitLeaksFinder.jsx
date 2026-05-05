@@ -1,10 +1,10 @@
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import StatusBadge from '../components/StatusBadge.jsx';
 import { formatCurrency } from '../utils/format.js';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
 
 export default function ProfitLeaksFinder() {
-  const { outputs, loading } = useSnapshot();
+  const { outputs, loading } = useWorkbench();
 
   if (loading || !outputs) return <SkeletonCard count={3} />;
 

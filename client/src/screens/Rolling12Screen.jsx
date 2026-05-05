@@ -5,7 +5,7 @@ import {
   CartesianGrid, Legend, ReferenceLine,
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import { api } from '../utils/api.js';
 import {
   sumCalendarTTM,
@@ -541,7 +541,7 @@ function YearlyCharts({ years }) {
 
 // ── Main Screen ─────────────────────────────────────────────
 export default function Rolling12Screen() {
-  const { monthlyHistory } = useSnapshot();
+  const { monthlyHistory } = useWorkbench();
 
   const [windows, setWindows] = useState([]);
   const [selectedWindow, setSelectedWindow] = useState(null);

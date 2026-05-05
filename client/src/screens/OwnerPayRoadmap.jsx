@@ -1,9 +1,9 @@
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import { formatCurrency, formatPercent } from '../utils/format.js';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
 
 export default function OwnerPayRoadmap() {
-  const { outputs, loading } = useSnapshot();
+  const { outputs, loading } = useWorkbench();
 
   if (loading || !outputs) return <SkeletonCard count={2} />;
 

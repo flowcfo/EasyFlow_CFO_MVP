@@ -4,7 +4,7 @@ import {
   XAxis, YAxis, Tooltip as ReTooltip, ResponsiveContainer,
   CartesianGrid, ReferenceLine, ReferenceArea, Legend,
 } from 'recharts';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import { runForecast } from '../utils/ForecastEngine.js';
 import { formatCurrency, formatCompact, formatPercent } from '../utils/format.js';
 
@@ -579,7 +579,7 @@ function BaselineBanner({ baselineRatios, hasHistory }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function ForecastView() {
-  const { inputs, monthlyHistory } = useSnapshot();
+  const { inputs, monthlyHistory } = useWorkbench();
 
   const [activeView,     setActiveView]     = useState(1);
   const [targetProfit,   setTargetProfit]   = useState(10);      // display as integer %

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth.js';
 import { useGame } from '../hooks/useGame.js';
@@ -33,6 +33,18 @@ export default function NavSidebar() {
   const userRank = TIER_RANK[user?.tier] || 0;
   const isPartner = user?.user_type === 'partner';
   const isOnPartnerPage = location.pathname.startsWith('/partner');
+
+  // Per-client CFO workbench detection. When the URL matches
+  // /partner/client/:clientId/<anything>, every screen link points at the
+  // workbench scope and the upgrade CTA is hidden.
+  const workbenchMatch = matchPath(
+    { path: '/partner/client/:clientId/*' },
+    location.pathname,
+  );
+  const workbenchClientId = workbenchMatch?.params?.clientId || null;
+  const screenBase = workbenchClientId
+    ? `/partner/client/${workbenchClientId}`
+    : '/app';
 
   const ownerScreens = SCREEN_NAMES.filter((s) => s.id <= 15);
   const tierLabel = TIER_LABELS[user?.tier] || user?.tier || 'Free';
@@ -99,12 +111,20 @@ export default function NavSidebar() {
             <p className="font-mulish text-xs text-stone uppercase tracking-wide">Screens</p>
           </div>
         )}
+        {workbenchClientId && (
+          <div className="px-4 pt-1 pb-1">
+            <p className="font-mulish text-xs text-orange uppercase tracking-wide">Client Workbench</p>
+          </div>
+        )}
         {ownerScreens.map((screen) => {
-          const locked = userRank < (TIER_RANK[screen.tier] || 0);
+          // In the partner workbench, partners get all 14 screens unlocked.
+          const locked = workbenchClientId
+            ? false
+            : userRank < (TIER_RANK[screen.tier] || 0);
           return (
             <NavLink
               key={screen.id}
-              to={`/app/${SCREEN_ROUTES[screen.id]}`}
+              to={`${screenBase}/${SCREEN_ROUTES[screen.id]}`}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2.5 text-sm font-mulish transition-colors
                 ${isActive ? 'bg-orange/10 text-orange border-r-2 border-orange' : 'text-stone hover:text-white hover:bg-white/5'}
@@ -118,21 +138,31 @@ export default function NavSidebar() {
         })}
       </nav>
 
-      {/* Integrations */}
-      <div className="border-t border-white/10 py-2">
-        <NavLink to="/app/integrations"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-4 py-2.5 text-sm font-mulish transition-colors
-            ${isActive ? 'bg-orange/10 text-orange border-r-2 border-orange' : 'text-stone hover:text-white hover:bg-white/5'}`
-          }
-        >
-          <span className="w-5 text-center font-sora text-xs">🔗</span>
-          <span>Integrations</span>
-        </NavLink>
-      </div>
+      {/* Integrations — owner-side only. Partner workbench handles imports inside Input. */}
+      {!workbenchClientId && (
+        <div className="border-t border-white/10 py-2">
+          <NavLink to="/app/integrations"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2.5 text-sm font-mulish transition-colors
+              ${isActive ? 'bg-orange/10 text-orange border-r-2 border-orange' : 'text-stone hover:text-white hover:bg-white/5'}`
+            }
+          >
+            <span className="w-5 text-center font-sora text-xs">🔗</span>
+            <span>Integrations</span>
+          </NavLink>
+        </div>
+      )}
 
       {/* Bottom CTAs */}
       <div className="p-4 border-t border-white/10 space-y-2">
+        {workbenchClientId && (
+          <button
+            onClick={() => navigate('/partner/dashboard')}
+            className="w-full text-xs font-mulish text-stone hover:text-white py-1.5 transition text-center border border-white/10 rounded-lg"
+          >
+            &larr; Back to Client Book
+          </button>
+        )}
         {nextUpgrade && !isPartner && (
           <button
             onClick={() => setModalTier(nextUpgrade.tier)}

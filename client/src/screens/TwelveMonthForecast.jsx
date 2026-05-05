@@ -3,7 +3,7 @@ import {
   ComposedChart, Area, Bar, Line, XAxis, YAxis, Tooltip as RechartsTooltip,
   ResponsiveContainer, Legend, CartesianGrid, ReferenceLine,
 } from 'recharts';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import SliderInput from '../components/SliderInput.jsx';
 import { formatCurrency, formatCompact, formatPercent } from '../utils/format.js';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
@@ -317,7 +317,7 @@ function Rolling12Table({ periods }) {
 }
 
 export default function TwelveMonthForecast() {
-  const { outputs, loading, inputs, monthlyHistory } = useSnapshot();
+  const { outputs, loading, inputs, monthlyHistory } = useWorkbench();
   const [growthRate, setGrowthRate] = useState(null);
   const [useManualGrowth, setUseManualGrowth] = useState(false);
   const [activeTab, setActiveTab] = useState('forecast');

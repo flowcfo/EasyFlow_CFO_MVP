@@ -5,6 +5,7 @@ import {
   useCallback,
   useRef,
 } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../utils/api.js';
 import { getDefaultInputs } from '../../../shared/schema.js';
 
@@ -35,6 +36,13 @@ function loadPersistedSources() {
 }
 
 export function SnapshotProvider({ children }) {
+  // SnapshotProvider mounts globally (above the router's <Routes>). When the
+  // partner is inside the per-client workbench, the ClientWorkbenchProvider
+  // is the live data source; we must NOT also fire the owner-side auto-calc
+  // here or every workbench page boot would burn an extra /calc/snapshot call.
+  const location = useLocation();
+  const inWorkbench = location.pathname.startsWith('/partner/client/');
+
   const [inputs, setInputs] = useState(loadPersistedInputs);
   const [outputs, setOutputs] = useState(null);
   const [interpretation, setInterpretation] = useState(null);
@@ -92,8 +100,10 @@ export function SnapshotProvider({ children }) {
 
   // Auto-calculate once defaults (or restored session inputs) are valid, even if revenue is still 0.
   // Without this, dashboards wait forever on `!outputs` because the old guard required revenue > 0.
+  // Skipped inside /partner/client/:id/* — the workbench provider owns that fetch.
   const autoCalcInFlight = useRef(false);
   useEffect(() => {
+    if (inWorkbench) return;
     if (!outputs && !loading && inputs && !error && !autoCalcInFlight.current) {
       autoCalcInFlight.current = true;
       calculate(inputs, 'Auto', 'annual')
@@ -102,7 +112,7 @@ export function SnapshotProvider({ children }) {
           autoCalcInFlight.current = false;
         });
     }
-  }, [outputs, loading, inputs, error, calculate]);
+  }, [outputs, loading, inputs, error, calculate, inWorkbench]);
 
   const updateInputs = useCallback((updates) => {
     setInputs((prev) => ({ ...prev, ...updates }));

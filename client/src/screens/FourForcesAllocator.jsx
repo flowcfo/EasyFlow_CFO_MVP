@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import { formatCurrency } from '../utils/format.js';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
 
 const COLORS = ['#eab308', '#3b82f6', '#22c55e', '#F05001'];
 
 export default function FourForcesAllocator() {
-  const { outputs, loading } = useSnapshot();
+  const { outputs, loading } = useWorkbench();
 
   if (loading || !outputs) return <SkeletonCard count={2} />;
 

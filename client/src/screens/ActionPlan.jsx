@@ -1,6 +1,6 @@
 import { useGame } from '../hooks/useGame.js';
 import { useAuth } from '../hooks/useAuth.js';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import FixQueueCard from '../components/FixQueueCard.jsx';
 import ComicPanel from '../components/ComicPanel.jsx';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
@@ -22,7 +22,7 @@ function actionToPanel(action, index) {
 export default function ActionPlan() {
   const { gameProgress, completeAction } = useGame();
   const { user } = useAuth();
-  const { outputs, loading } = useSnapshot();
+  const { outputs, loading } = useWorkbench();
   const isComic = user?.response_mode !== 'classic';
 
   if (loading) return <SkeletonCard count={3} />;

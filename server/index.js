@@ -65,6 +65,12 @@ app.post('/stripe/webhook', express.raw({ type: 'application/json' }));
 
 app.post('/integrations/excel/upload', express.raw({ type: 'application/octet-stream', limit: '10mb' }));
 
+// Partner CFO workbench Excel upload uses the same raw-body pipeline as the owner-side import.
+app.post(
+  /^\/partner\/clients\/[^/]+\/draft\/import\/excel$/,
+  express.raw({ type: 'application/octet-stream', limit: '10mb' }),
+);
+
 app.use(express.json());
 
 app.get('/health', (_req, res) => {

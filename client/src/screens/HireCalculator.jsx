@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import InputField from '../components/InputField.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
 import { formatCurrency, formatPercent, formatMultiplier } from '../utils/format.js';
@@ -7,7 +7,7 @@ import { SkeletonCard } from '../components/SkeletonLoader.jsx';
 import { api } from '../utils/api.js';
 
 export default function HireCalculator() {
-  const { outputs, loading } = useSnapshot();
+  const { outputs, loading } = useWorkbench();
   const [hireInputs, setHireInputs] = useState({
     new_employee_annual_wage: 45000,
     benefits_pct: 0.15,

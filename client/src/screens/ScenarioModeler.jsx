@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import SliderInput from '../components/SliderInput.jsx';
 import TierBadge from '../components/TierBadge.jsx';
 import { formatCurrency, formatPercent } from '../utils/format.js';
@@ -14,7 +14,7 @@ const PRESETS = [
 ];
 
 export default function ScenarioModeler() {
-  const { outputs, loading } = useSnapshot();
+  const { outputs, loading } = useWorkbench();
   const [levers, setLevers] = useState({
     revenue_change_pct: 0,
     price_increase_pct: 0,

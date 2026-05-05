@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import { useCalc } from '../hooks/useCalc.js';
 import { api } from '../utils/api.js';
 import InputField from '../components/InputField.jsx';
@@ -22,7 +22,14 @@ import { formatCurrency, formatPercent } from '../utils/format.js';
 
 export default function InputEngine() {
   const navigate = useNavigate();
-  const { inputs, updateInputs, setQBOInputs, fieldSources, calculate, loading } = useSnapshot();
+  const location = useLocation();
+  const { clientId } = useParams();
+  const isWorkbench = location.pathname.startsWith('/partner/client/') && clientId;
+  const dashboardPath = isWorkbench ? `/partner/client/${clientId}/dashboard` : '/app/dashboard';
+
+  const workbench = useWorkbench();
+  const { inputs, updateInputs, setQBOInputs, fieldSources, calculate, loading } = workbench;
+  const importExcelToWorkbench = workbench.importExcel;
   const { debouncedCalc } = useCalc();
   const [liveOutputs, setLiveOutputs] = useState(null);
   const [errors, setErrors] = useState({});
@@ -40,7 +47,7 @@ export default function InputEngine() {
     setErrors({});
     try {
       await calculate(inputs, null, 'annual');
-      navigate('/app/dashboard');
+      navigate(dashboardPath);
     } catch (err) {
       if (err.details) setErrors(err.details);
     }
@@ -52,13 +59,21 @@ export default function InputEngine() {
     setImportStatus(null);
     try {
       const buffer = await file.arrayBuffer();
-      const data = await api.upload('/integrations/excel/upload', buffer, file.name);
+      // In workbench mode the upload writes directly to the partner draft and
+      // returns precomputed outputs. Outside workbench mode we hit the original
+      // owner-side endpoint.
+      const data = isWorkbench && importExcelToWorkbench
+        ? await importExcelToWorkbench(buffer, file.name)
+        : await api.upload('/integrations/excel/upload', buffer, file.name);
 
-      if (data.inputs) {
+      if (data.inputs || (isWorkbench && data.draft?.inputs)) {
+        const draftInputs = isWorkbench ? data.draft?.inputs : data.inputs;
+        const draftSources = isWorkbench ? data.draft?.field_sources : data.sources;
+        const draftMonthly = isWorkbench ? data.draft?.monthly_history : data.monthlyHistory;
         setQBOInputs(
-          sanitizeImportedInputs(data.inputs),
-          data.sources || {},
-          data.monthlyHistory || null,
+          sanitizeImportedInputs(draftInputs),
+          draftSources || {},
+          draftMonthly || null,
         );
         const allRange = data.metadata?.all_months_range || '';
         const periodNote = data.metadata?.monthly_mode

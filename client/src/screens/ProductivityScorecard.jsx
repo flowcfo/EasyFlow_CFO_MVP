@@ -1,4 +1,4 @@
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import CircularGauge from '../components/CircularGauge.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
 import Tooltip from '../components/Tooltip.jsx';
@@ -49,7 +49,7 @@ const RATIO_CONFIG = [
 ];
 
 export default function ProductivityScorecard() {
-  const { outputs, loading } = useSnapshot();
+  const { outputs, loading } = useWorkbench();
 
   if (loading || !outputs) return <SkeletonCard count={3} />;
 

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useSnapshot } from '../hooks/useSnapshot.js';
+import { useWorkbench } from '../hooks/useWorkbench.js';
 import { useGame } from '../hooks/useGame.js';
 import { useAuth } from '../hooks/useAuth.js';
 import ProfitGauge from '../components/ProfitGauge.jsx';
@@ -10,16 +10,21 @@ import WaterfallRow from '../components/WaterfallRow.jsx';
 import FixQueueCard from '../components/FixQueueCard.jsx';
 import UnlockMap from '../components/UnlockMap.jsx';
 import AIChatPanel from '../components/AIChatPanel.jsx';
+import WelcomeCard from '../components/WelcomeCard.jsx';
 import { SkeletonCard } from '../components/SkeletonLoader.jsx';
 import SnapshotEmptyState from '../components/SnapshotEmptyState.jsx';
 export default function ProfitDashboard() {
-  const { outputs, interpretation, loading, error, calculate, inputs } = useSnapshot();
+  const { outputs, interpretation, loading, error, calculate, inputs } = useWorkbench();
   const { gameProgress, completeAction } = useGame();
   const { user } = useAuth();
+
+  const showWelcome = user && user.has_completed_onboarding === false;
+  const isManagedClient = user?.user_type === 'client';
 
   if (loading && !outputs) {
     return (
       <div className="space-y-6">
+        {showWelcome && <WelcomeCard />}
         <SkeletonCard />
         <SkeletonCard />
       </div>
@@ -28,10 +33,24 @@ export default function ProfitDashboard() {
 
   if (!outputs) {
     return (
-      <SnapshotEmptyState
-        error={error}
-        onRetry={() => calculate(inputs, 'Retry', 'annual')}
-      />
+      <div className="space-y-6">
+        {showWelcome && <WelcomeCard />}
+        {isManagedClient ? (
+          <div className="card-dark text-center py-12 px-6 max-w-lg mx-auto">
+            <h2 className="font-sora text-lg font-semibold text-white">
+              Your CFO is preparing your numbers.
+            </h2>
+            <p className="font-mulish text-sm text-stone-light mt-2">
+              You'll see your dashboard here within 1 business day.
+            </p>
+          </div>
+        ) : (
+          <SnapshotEmptyState
+            error={error}
+            onRetry={() => calculate(inputs, 'Retry', 'annual')}
+          />
+        )}
+      </div>
     );
   }
 
@@ -42,6 +61,7 @@ export default function ProfitDashboard() {
 
   return (
     <div className="space-y-6">
+      {showWelcome && <WelcomeCard />}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Revenue', value: w.total_revenue },
