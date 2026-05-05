@@ -17,6 +17,7 @@ create table if not exists users (
   tier text not null default 'free' check (tier in ('free','clarity','control','harvest','partner_starter','partner_growth','partner_scale')),
   stripe_customer_id text,
   response_mode text not null default 'comic' check (response_mode in ('comic','classic')),
+  has_completed_onboarding boolean not null default false,
   created_at timestamptz not null default now()
 );
 
