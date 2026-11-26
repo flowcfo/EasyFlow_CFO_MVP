@@ -5,7 +5,7 @@ import { partnerGuard, loadPartnerProfile, partnerClientAccess } from '../middle
 import { uploadLimiter } from '../middleware/rateLimiter.js';
 import { getPartnerDashboard, getPartnerAlerts } from '../partner/dashboard.js';
 import { getWhiteLabelConfig, updateWhiteLabelConfig } from '../partner/whitelabel.js';
-import { generateClientAccessToken, inviteClient, removeClient } from '../partner/clientAccess.js';
+import { generateClientAccessToken, inviteClient, removeClient, createClientInviteLink } from '../partner/clientAccess.js';
 import { generatePortfolioReport } from '../partner/portfolioReport.js';
 import { getPartnerAddons, activateAddon, deactivateAddon } from '../partner/addons.js';
 import {
@@ -94,6 +94,9 @@ router.post('/clients/invite', async (req, res, next) => {
     if (!client_name || !email) {
       return res.status(400).json({ error: 'client_name and email are required' });
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {
+      return res.status(400).json({ error: 'That email address does not look right.' });
+    }
 
     const { data: currentClients } = await supabaseAdmin
       .from('partner_clients')
@@ -110,6 +113,17 @@ router.post('/clients/invite', async (req, res, next) => {
     const result = await inviteClient(req.partner.id, { client_name, business_name, email });
     res.json(result);
   } catch (err) {
+    next(err);
+  }
+});
+
+// A fresh set-password link for a client already in the book (links expire).
+router.post('/clients/:id/invite-link', async (req, res, next) => {
+  try {
+    const result = await createClientInviteLink(req.partner.id, req.params.id);
+    res.json(result);
+  } catch (err) {
+    if (err.status === 404) return res.status(404).json({ error: err.message });
     next(err);
   }
 });

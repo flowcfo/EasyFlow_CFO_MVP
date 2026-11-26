@@ -118,7 +118,7 @@ export default function PartnerDashboard() {
         <InviteModal
           onClose={() => setShowInvite(false)}
           onInvited={() => {
-            setShowInvite(false);
+            // Keep the modal open: it now shows the invite link to send.
             loadDashboard();
           }}
         />
