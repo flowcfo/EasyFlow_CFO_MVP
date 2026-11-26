@@ -30,6 +30,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.CONVERSATION_ENCRYPTIO
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+
 function parseAllowedOrigins() {
   const raw = process.env.FRONTEND_URL || 'http://localhost:5173';
   // Browser Origin never has a trailing slash; strip so https://app.netlify.app/ still matches.
@@ -47,6 +48,10 @@ app.use(cors({
 
 // Netlify (and some proxies) may forward the browser path including /backend; routes are mounted at /auth, /calc, etc.
 app.use((req, _res, next) => {
+  const fnPrefix = '/.netlify/functions/backend';
+  if (req.url === fnPrefix || req.url.startsWith(`${fnPrefix}/`) || req.url.startsWith(`${fnPrefix}?`)) {
+    req.url = req.url.slice(fnPrefix.length) || '/';
+  }
   if (req.url === '/backend' || req.url.startsWith('/backend/') || req.url.startsWith('/backend?')) {
     req.url = req.url.slice('/backend'.length) || '/';
   }
@@ -91,11 +96,17 @@ app.use('/rolling12', rolling12Routes);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Easy Numbers server running on port ${PORT}`);
-  if (process.env.NODE_ENV === 'production') {
-    startCronJobs();
-  }
-});
+// On Netlify Functions (AWS Lambda underneath) the app is wrapped by netlify/functions/backend.mjs,
+// so we must not open a port or start in-process cron there.
+const RUNNING_AS_FUNCTION = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY_FUNCTION);
+
+if (!RUNNING_AS_FUNCTION) {
+  app.listen(PORT, () => {
+    console.log(`Easy Numbers server running on port ${PORT}`);
+    if (process.env.NODE_ENV === 'production') {
+      startCronJobs();
+    }
+  });
+}
 
 export default app;

@@ -1,6 +1,17 @@
 import rateLimit from 'express-rate-limit';
 import { TIER_RANK } from '../../shared/constants.js';
 
+// On Netlify the visitor's address comes in the x-nf-client-connection-ip header
+// (the function itself sees no socket address), so key IP-based limits on that.
+export function clientKey(req) {
+  return req.headers['x-nf-client-connection-ip'] || req.ip || 'unknown';
+}
+
+const IP_LIMIT_DEFAULTS = {
+  keyGenerator: clientKey,
+  validate: { ip: false, trustProxy: false, xForwardedForHeader: false },
+};
+
 const AI_REQUESTS_PER_HOUR = {
   clarity: 20,
   control: 30,
@@ -12,6 +23,7 @@ const AI_REQUESTS_PER_HOUR = {
 
 // Throttles credential stuffing and bulk signup. Applied to /auth/login and /auth/signup.
 export const authLimiter = rateLimit({
+  ...IP_LIMIT_DEFAULTS,
   windowMs: 15 * 60 * 1000,
   max: 20,
   standardHeaders: true,
@@ -21,6 +33,7 @@ export const authLimiter = rateLimit({
 
 // Catch-all backstop for unauthenticated abuse. Applied globally in server/index.js.
 export const globalLimiter = rateLimit({
+  ...IP_LIMIT_DEFAULTS,
   windowMs: 15 * 60 * 1000,
   max: 200,
   standardHeaders: true,
@@ -34,7 +47,8 @@ export const uploadLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?.id || req.ip,
+  ...IP_LIMIT_DEFAULTS,
+  keyGenerator: (req) => req.user?.id || clientKey(req),
   message: { error: 'Upload rate limit exceeded. Try again in an hour.' },
 });
 
