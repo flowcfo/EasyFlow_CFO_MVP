@@ -19,6 +19,22 @@ export const supabaseAdmin = createClient(supabaseUrl || PLACEHOLDER, supabaseSe
 
 export const supabaseAnon = createClient(supabaseUrl || PLACEHOLDER, supabaseAnonKey || 'placeholder');
 
+/**
+ * A throwaway client for signing someone in with a password.
+ *
+ * Never call signInWithPassword (or any other session-setting auth call) on
+ * supabaseAdmin: supabase-js keeps the resulting session in memory and sends
+ * that person's token on every later admin query, so the "admin" client would
+ * quietly run as whoever signed in last (and be blocked by row-level security).
+ * On Netlify a warm function instance is shared across requests, so this would
+ * leak between users. Make a fresh client per sign-in instead.
+ */
+export function supabaseSignInClient() {
+  return createClient(supabaseUrl || PLACEHOLDER, supabaseAnonKey || 'placeholder', {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+}
+
 export function supabaseForUser(accessToken) {
   return createClient(supabaseUrl || PLACEHOLDER, supabaseAnonKey || 'placeholder', {
     global: { headers: { Authorization: `Bearer ${accessToken}` } },

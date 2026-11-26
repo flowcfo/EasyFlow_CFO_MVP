@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { supabaseAdmin } from '../db/supabase.js';
+import { supabaseAdmin, supabaseSignInClient } from '../db/supabase.js';
 import { authGuard } from '../middleware/authGuard.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 
@@ -58,7 +58,7 @@ router.post('/signup', authLimiter, async (req, res, next) => {
         .is('client_user_id', null);
     }
 
-    const { data: session, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+    const { data: session, error: signInError } = await supabaseSignInClient().auth.signInWithPassword({
       email,
       password,
     });
@@ -81,7 +81,7 @@ router.post('/login', authLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseSignInClient().auth.signInWithPassword({ email, password });
 
     if (error) {
       return res.status(401).json({ error: 'Invalid email or password' });
