@@ -2,11 +2,16 @@
   "name": "easyflow-cfo-mvp",
   "private": true,
   "type": "module",
-  "workspaces": ["server"],
+  "workspaces": [
+    "server"
+  ],
   "scripts": {
     "start": "node server/index.js"
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "pdfkit": "^0.15.2"
   }
 }

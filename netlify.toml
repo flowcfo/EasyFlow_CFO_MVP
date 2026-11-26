@@ -1,11 +1,18 @@
-# Client app in /client — build must run there so Vite copies public/_redirects → dist/_redirects
+# Front end (client/) and API (server/, run as a Netlify Function) deploy together from the repo root.
+# The API used to live on Railway; that app no longer exists.
 [build]
-  base = "client"
-  command = "npm ci && npm run build"
-  publish = "dist"
+  command = "npm ci && npm ci --prefix client && npm run build --prefix client"
+  publish = "client/dist"
+  functions = "netlify/functions"
 
-# Same-origin API: browser calls /backend/* → Netlify proxies to Railway (avoids CORS / env mistakes).
+# Same-origin API: browser calls /backend/* -> client/public/_redirects -> the backend function.
 [build.environment]
   VITE_API_URL = "/backend"
+  NODE_VERSION = "20"
+
+[functions]
+  node_bundler = "esbuild"
+  # pdfkit loads font metric files from disk at runtime, so ship it as a real module.
+  external_node_modules = ["pdfkit"]
 
 # Redirects live in client/public/_redirects (copied to dist) so publish dir has one ordered list.

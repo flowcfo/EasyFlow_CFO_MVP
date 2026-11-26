@@ -31,13 +31,9 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout>
-      <div className="text-center mb-6">
-        <h1 className="font-sora text-2xl font-bold text-navy tracking-tight">
-          EasyFlow CFO
-        </h1>
-        <p className="font-mulish text-xs text-stone mt-1">
-          Your Numbers Made Easy.
-        </p>
+      <div className="mb-8 flex flex-col items-center">
+        <img src="/easyflow-cfo-logo.png" alt="EasyFlow CFO" className="h-14 w-auto" />
+        <p className="mt-2 text-sm font-semibold text-slate">Your Numbers Made Easy.</p>
       </div>
 
       {submitted ? (
@@ -45,7 +41,7 @@ export default function ForgotPassword() {
           <div className="text-center mb-4">
             <h2 className="font-sora text-xl font-bold text-navy">Check your email.</h2>
           </div>
-          <p className="font-mulish text-sm text-stone text-center">
+          <p className="font-mulish text-sm text-slate text-center">
             If an account exists for that email, a reset link has been sent.
           </p>
           <Link
@@ -61,7 +57,7 @@ export default function ForgotPassword() {
             <h2 className="font-sora text-xl font-bold text-navy">
               Reset your password.
             </h2>
-            <p className="font-mulish text-sm text-stone mt-1">
+            <p className="font-mulish text-sm text-slate mt-1">
               Enter your email and we'll send you a reset link.
             </p>
           </div>
@@ -91,7 +87,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-navy hover:bg-[#1a2f4f] disabled:opacity-60 text-white font-sora font-semibold py-2.5 rounded-lg transition"
+              className="btn-primary w-full"
             >
               {loading ? 'Sending...' : 'Send reset link'}
             </button>

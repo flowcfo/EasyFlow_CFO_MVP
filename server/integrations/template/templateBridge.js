@@ -9,7 +9,9 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// import.meta.url is undefined once esbuild bundles this into the Netlify Function (CJS output),
+// so fall back to the working directory. The Python template writer only runs locally anyway.
+const __dirname = import.meta.url ? path.dirname(fileURLToPath(import.meta.url)) : process.cwd();
 const CLI_SCRIPT = path.join(__dirname, 'fill_template_cli.py');
 
 const DEFAULT_TEMPLATE = path.join(

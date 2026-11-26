@@ -15,7 +15,7 @@ export default function Login() {
     const dest =
       user.user_type === 'partner'
         ? '/partner/dashboard'
-        : next || '/app/dashboard';
+        : next || '/app/game-plan';
     return <Navigate to={dest} replace />;
   }
 
@@ -38,7 +38,7 @@ export default function Login() {
       if (data.user?.user_type === 'partner') {
         navigate('/partner/dashboard', { replace: true });
       } else {
-        navigate(next || '/app/dashboard', { replace: true });
+        navigate(next || '/app/game-plan', { replace: true });
       }
     } catch (err) {
       setError(err.message || 'Invalid email or password');
@@ -48,14 +48,10 @@ export default function Login() {
   }
 
   return (
-    <AuthLayout>
-      <div className="text-center mb-6">
-        <h1 className="font-sora text-2xl font-bold text-navy tracking-tight">
-          EasyFlow CFO
-        </h1>
-        <p className="font-mulish text-xs text-stone mt-1">
-          Your Numbers Made Easy.
-        </p>
+    <AuthLayout showContactLink={false}>
+      <div className="mb-8 flex flex-col items-center">
+        <img src="/easyflow-cfo-logo.png" alt="EasyFlow CFO" className="h-14 w-auto" />
+        <p className="mt-2 text-sm font-semibold text-slate">Your Numbers Made Easy.</p>
       </div>
 
       {showClosedBanner && (
@@ -63,7 +59,7 @@ export default function Login() {
           <p className="font-mulish text-sm text-navy font-semibold">
             EasyFlow CFO accounts are created by your CFO.
           </p>
-          <p className="font-mulish text-xs text-stone mt-1">
+          <p className="font-mulish text-xs text-slate mt-1">
             Contact us to get started.
           </p>
           <a
@@ -79,7 +75,7 @@ export default function Login() {
 
       <div className="text-center mb-6">
         <h2 className="font-sora text-xl font-bold text-navy">Welcome back.</h2>
-        <p className="font-mulish text-sm text-stone mt-1">
+        <p className="font-mulish text-sm text-slate mt-1">
           Sign in to your client dashboard.
         </p>
       </div>
@@ -116,7 +112,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 font-mulish text-xs font-semibold text-stone hover:text-navy px-2 py-1"
+              className="absolute right-2 top-1/2 -translate-y-1/2 font-mulish text-xs font-semibold text-slate hover:text-navy px-2 py-1"
               tabIndex={-1}
             >
               {showPassword ? 'Hide' : 'Show'}
@@ -133,7 +129,7 @@ export default function Login() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-navy hover:bg-[#1a2f4f] disabled:opacity-60 text-white font-sora font-semibold py-2.5 rounded-lg transition"
+          className="btn-primary w-full"
         >
           {loading ? 'Signing in...' : 'Sign in'}
         </button>
@@ -150,7 +146,7 @@ export default function Login() {
 
       <hr className="my-6 border-stone/20" />
 
-      <p className="font-mulish text-xs text-stone text-center">
+      <p className="font-mulish text-xs text-slate text-center">
         Need access?{' '}
         <a
           href={`mailto:${SUPPORT_EMAIL}?subject=EasyFlow%20CFO%20account%20request`}

@@ -24,6 +24,9 @@ import WeeklyScorecard from './screens/WeeklyScorecard.jsx';
 import OwnerPayRoadmap from './screens/OwnerPayRoadmap.jsx';
 import ActionPlan from './screens/ActionPlan.jsx';
 import IntegrationHub from './screens/IntegrationHub.jsx';
+import GamePlan from './screens/GamePlan.jsx';
+import ToolsHub from './screens/ToolsHub.jsx';
+import { CashSection, TargetVsActualSection } from './screens/ComingWithWorkbook.jsx';
 
 import PartnerDashboard from './partner/PartnerDashboard.jsx';
 import WhiteLabelSettings from './partner/WhiteLabelSettings.jsx';
@@ -37,7 +40,7 @@ import TierGate from './components/TierGate.jsx';
 function PartnerRoute({ children }) {
   const { user } = useAuth();
   if (user?.user_type !== 'partner') {
-    return <Navigate to="/app/dashboard" replace />;
+    return <Navigate to="/app/game-plan" replace />;
   }
   return children;
 }
@@ -47,7 +50,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-navy flex items-center justify-center">
+      <div className="min-h-screen bg-offwhite flex items-center justify-center">
         <div className="skeleton w-16 h-16 rounded-full" />
       </div>
     );
@@ -67,7 +70,12 @@ export default function App() {
         <Route path="/signup" element={<Navigate to="/login?closed=1" replace />} />
 
         <Route path="/app" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="input" replace />} />
+          <Route index element={<Navigate to="game-plan" replace />} />
+          {/* The six client sections (menu order): Game Plan, Cash, Tools, Home, Target vs. Actual, Enter this month */}
+          <Route path="game-plan" element={<GamePlan />} />
+          <Route path="cash" element={<CashSection />} />
+          <Route path="tools" element={<ToolsHub />} />
+          <Route path="target-vs-actual" element={<TargetVsActualSection />} />
           {/* Free tier: Screens 1-3 */}
           <Route path="input" element={<InputEngine />} />
           <Route path="dashboard" element={<ProfitDashboard />} />
@@ -101,7 +109,11 @@ export default function App() {
 
           {/* Per-client CFO workbench. All 14 Easy Numbers screens, scoped to a client's draft. */}
           <Route path="client/:clientId" element={<PartnerRoute><ClientWorkbench /></PartnerRoute>}>
-            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route index element={<Navigate to="game-plan" replace />} />
+            <Route path="game-plan" element={<GamePlan />} />
+            <Route path="cash" element={<CashSection />} />
+            <Route path="tools" element={<ToolsHub />} />
+            <Route path="target-vs-actual" element={<TargetVsActualSection />} />
             <Route path="input" element={<InputEngine />} />
             <Route path="dashboard" element={<ProfitDashboard />} />
             <Route path="owner-pay-gap" element={<OwnerPayGap />} />

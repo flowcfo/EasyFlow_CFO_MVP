@@ -1,201 +1,97 @@
-import { useState } from 'react';
 import { NavLink, useNavigate, useLocation, matchPath } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth.js';
-import { useGame } from '../hooks/useGame.js';
-import StreakDisplay from './StreakDisplay.jsx';
-import TierPresentationModal from './TierPresentationModal.jsx';
-import { SCREEN_NAMES, TIER_RANK, TIER_LABELS } from '../../../shared/constants.js';
+import {
+  GamePlanIcon, CashIcon, ToolsIcon, HomeIcon, TargetIcon, PencilIcon,
+  ClientsIcon, BrushIcon, ArrowLeftIcon,
+} from './Icons.jsx';
 
-const SCREEN_ROUTES = {
-  1: 'input', 2: 'dashboard', 3: 'owner-pay-gap',
-  4: 'breakeven', 5: 'productivity', 6: 'leaks',
-  7: 'four-forces', 8: 'scenarios', 9: 'forecast',
-  10: 'rolling12', 11: 'pricing', 12: 'hire',
-  13: 'weekly', 14: 'pay-roadmap', 15: 'action-plan',
-};
+// The six client sections, in Nick's menu order (decided Nov 24, 2026).
+export const CLIENT_SECTIONS = [
+  { path: 'game-plan', label: 'Game Plan', Icon: GamePlanIcon },
+  { path: 'cash', label: 'Cash', Icon: CashIcon },
+  { path: 'tools', label: 'Tools', Icon: ToolsIcon },
+  { path: 'dashboard', label: 'Home', Icon: HomeIcon },
+  { path: 'target-vs-actual', label: 'Target vs. Actual', Icon: TargetIcon },
+  { path: 'input', label: 'Enter this month', Icon: PencilIcon },
+];
 
-function getNextUpgrade(tier) {
-  switch (tier) {
-    case 'free':    return { tier: 'clarity', label: 'Clarity',  price: '$19.99/mo' };
-    case 'clarity': return { tier: 'control', label: 'Control',  price: '$49.99/mo' };
-    case 'control': return { tier: 'harvest', label: 'Harvest',  price: '$99.99/mo' };
-    default: return null;
-  }
+const PARTNER_LINKS = [
+  { to: '/partner/dashboard', label: 'Clients', Icon: ClientsIcon },
+  { to: '/partner/whitelabel', label: 'Brand settings', Icon: BrushIcon },
+];
+
+const SUPPORT_EMAIL = 'nick@easyflowcfo.com';
+
+function itemClass({ isActive }) {
+  return [
+    'flex items-center gap-3 rounded-[10px] px-3.5 py-3 font-body font-semibold whitespace-nowrap transition-colors',
+    isActive ? 'bg-cream text-ink' : 'text-navy hover:bg-offwhite',
+  ].join(' ');
+}
+
+function iconClass(isActive) {
+  return `h-5 w-5 flex-none hidden md:block ${isActive ? 'text-flame' : 'text-slate'}`;
 }
 
 export default function NavSidebar() {
-  const { user, logout } = useAuth();
-  const { gameProgress } = useGame();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [modalTier, setModalTier] = useState(null); // null = closed
-  const userRank = TIER_RANK[user?.tier] || 0;
   const isPartner = user?.user_type === 'partner';
-  const isOnPartnerPage = location.pathname.startsWith('/partner');
 
-  // Per-client CFO workbench detection. When the URL matches
-  // /partner/client/:clientId/<anything>, every screen link points at the
-  // workbench scope and the upgrade CTA is hidden.
-  const workbenchMatch = matchPath(
-    { path: '/partner/client/:clientId/*' },
-    location.pathname,
-  );
+  // /partner/client/:clientId/* is Nick's per-client workbench: same six sections, scoped to that client.
+  const workbenchMatch = matchPath({ path: '/partner/client/:clientId/*' }, location.pathname);
   const workbenchClientId = workbenchMatch?.params?.clientId || null;
-  const screenBase = workbenchClientId
-    ? `/partner/client/${workbenchClientId}`
-    : '/app';
-
-  const ownerScreens = SCREEN_NAMES.filter((s) => s.id <= 15);
-  const tierLabel = TIER_LABELS[user?.tier] || user?.tier || 'Free';
-  const nextUpgrade = getNextUpgrade(user?.tier);
+  const screenBase = workbenchClientId ? `/partner/client/${workbenchClientId}` : '/app';
+  const showClientSections = !isPartner || Boolean(workbenchClientId) || location.pathname.startsWith('/app');
 
   return (
-    <aside className="w-64 bg-navy-light border-r border-white/10 h-screen sticky top-0 flex flex-col">
-      {/* Brand */}
-      <div className="p-4 border-b border-white/10">
-        <h1 className="font-sora text-lg font-bold text-orange">Easy Numbers</h1>
-        <p className="font-mulish text-xs text-stone">Your Numbers Made Easy.</p>
-      </div>
+    <nav
+      aria-label="Main"
+      className="sticky top-16 z-20 flex gap-1 overflow-x-auto border-b border-line bg-white px-4 py-2
+                 md:top-[76px] md:h-[calc(100vh-76px)] md:w-60 md:flex-none md:flex-col md:overflow-visible
+                 md:border-b-0 md:border-r md:px-3 md:py-6"
+    >
+      {isPartner && !workbenchClientId && PARTNER_LINKS.map(({ to, label, Icon }) => (
+        <NavLink key={to} to={to} className={itemClass}>
+          {({ isActive }) => (<><Icon className={iconClass(isActive)} />{label}</>)}
+        </NavLink>
+      ))}
 
-      {/* User / tier */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between">
-        <div>
-          <p className="font-mulish text-sm text-white">{user?.business_name || user?.email}</p>
-          <button
-            onClick={() => setModalTier(user?.tier || 'free')}
-            className="font-mulish text-xs text-stone hover:text-orange transition underline underline-offset-2 decoration-dotted text-left"
-          >
-            {tierLabel} {isPartner ? '(Partner)' : ''} tier — what's included?
-          </button>
-        </div>
-        <StreakDisplay streak={gameProgress?.current_streak || 0} atRisk={gameProgress?.streak_at_risk} />
-      </div>
-
-      {/* Profit score */}
-      {gameProgress?.profit_score !== undefined && (
-        <div className="p-4 border-b border-white/10 text-center">
-          <p className="font-sora text-2xl text-orange font-bold">{gameProgress.profit_score}</p>
-          <p className="font-mulish text-xs text-stone">Profit Score</p>
-        </div>
+      {workbenchClientId && (
+        <button
+          type="button"
+          onClick={() => navigate('/partner/dashboard')}
+          className="flex items-center gap-3 rounded-[10px] px-3.5 py-3 font-body font-semibold text-cobalt whitespace-nowrap hover:bg-offwhite"
+        >
+          <ArrowLeftIcon className="hidden h-5 w-5 flex-none md:block" />
+          All clients
+        </button>
       )}
 
-      {/* Partner nav */}
-      {isPartner && (
-        <div className="border-b border-white/10">
-          <div className="px-4 pt-3 pb-1">
-            <p className="font-mulish text-xs text-stone uppercase tracking-wide">Partner</p>
-          </div>
-          {[
-            { to: '/partner/dashboard', icon: '📊', label: 'Client Book' },
-            { to: '/partner/whitelabel', icon: '🎨', label: 'White-Label' },
-            { to: '/partner/addons',    icon: '🤖', label: 'AI Add-Ons'  },
-          ].map(({ to, icon, label }) => (
-            <NavLink key={to} to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 text-sm font-mulish transition-colors
-                ${isActive ? 'bg-orange/10 text-orange border-r-2 border-orange' : 'text-stone hover:text-white hover:bg-white/5'}`
-              }
-            >
-              <span className="w-5 text-center font-sora text-xs">{icon}</span>
-              <span>{label}</span>
+      {showClientSections && (
+        <>
+          {workbenchClientId && (
+            <p className="eyebrow hidden px-3.5 pb-1 pt-4 text-ember md:block">Client workbench</p>
+          )}
+          {CLIENT_SECTIONS.map(({ path, label, Icon }) => (
+            <NavLink key={path} to={`${screenBase}/${path}`} className={itemClass}>
+              {({ isActive }) => (<><Icon className={iconClass(isActive)} />{label}</>)}
             </NavLink>
           ))}
-        </div>
+        </>
       )}
 
-      {/* Owner screens */}
-      <nav className="flex-1 overflow-y-auto py-2">
-        {!isOnPartnerPage && (
-          <div className="px-4 pt-1 pb-1">
-            <p className="font-mulish text-xs text-stone uppercase tracking-wide">Screens</p>
-          </div>
-        )}
-        {workbenchClientId && (
-          <div className="px-4 pt-1 pb-1">
-            <p className="font-mulish text-xs text-orange uppercase tracking-wide">Client Workbench</p>
-          </div>
-        )}
-        {ownerScreens.map((screen) => {
-          // In the partner workbench, partners get all 14 screens unlocked.
-          const locked = workbenchClientId
-            ? false
-            : userRank < (TIER_RANK[screen.tier] || 0);
-          return (
-            <NavLink
-              key={screen.id}
-              to={`${screenBase}/${SCREEN_ROUTES[screen.id]}`}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 text-sm font-mulish transition-colors
-                ${isActive ? 'bg-orange/10 text-orange border-r-2 border-orange' : 'text-stone hover:text-white hover:bg-white/5'}
-                ${locked ? 'opacity-50' : ''}`
-              }
-            >
-              <span className="w-5 text-center font-sora text-xs">{locked ? '🔒' : screen.id}</span>
-              <span className="truncate">{screen.name}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
+      <div className="hidden flex-1 md:block" />
 
-      {/* Integrations — owner-side only. Partner workbench handles imports inside Input. */}
-      {!workbenchClientId && (
-        <div className="border-t border-white/10 py-2">
-          <NavLink to="/app/integrations"
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 text-sm font-mulish transition-colors
-              ${isActive ? 'bg-orange/10 text-orange border-r-2 border-orange' : 'text-stone hover:text-white hover:bg-white/5'}`
-            }
-          >
-            <span className="w-5 text-center font-sora text-xs">🔗</span>
-            <span>Integrations</span>
-          </NavLink>
-        </div>
+      {!isPartner && (
+        <p className="hidden px-3.5 py-3 text-sm leading-snug text-slate md:block">
+          Questions about your numbers?{' '}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-bold text-cobalt hover:underline">
+            Message Nick
+          </a>
+        </p>
       )}
-
-      {/* Bottom CTAs */}
-      <div className="p-4 border-t border-white/10 space-y-2">
-        {workbenchClientId && (
-          <button
-            onClick={() => navigate('/partner/dashboard')}
-            className="w-full text-xs font-mulish text-stone hover:text-white py-1.5 transition text-center border border-white/10 rounded-lg"
-          >
-            &larr; Back to Client Book
-          </button>
-        )}
-        {nextUpgrade && !isPartner && (
-          <button
-            onClick={() => setModalTier(nextUpgrade.tier)}
-            className="btn-primary w-full text-sm py-2"
-          >
-            Upgrade to {nextUpgrade.label} — {nextUpgrade.price}
-          </button>
-        )}
-        {!isPartner && (
-          <button
-            onClick={() => setModalTier('partner_starter')}
-            className="w-full text-xs font-mulish text-stone hover:text-white py-1.5 transition text-center"
-          >
-            🤝 Become a Fractional CFO
-          </button>
-        )}
-        <button
-          onClick={() => { logout(); navigate('/'); }}
-          className="btn-ghost text-xs w-full text-center"
-        >
-          Log out
-        </button>
-      </div>
-
-      {/* Tier guide modal */}
-      <AnimatePresence>
-        {modalTier && (
-          <TierPresentationModal
-            initialTier={modalTier}
-            onClose={() => setModalTier(null)}
-          />
-        )}
-      </AnimatePresence>
-    </aside>
+    </nav>
   );
 }

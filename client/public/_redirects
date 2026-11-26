@@ -1,2 +1,2 @@
-/backend/*  https://easyflowcfomvp-production.up.railway.app/:splat  200
+/backend/*  /.netlify/functions/backend/:splat  200
 /*    /index.html   200

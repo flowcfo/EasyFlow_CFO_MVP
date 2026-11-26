@@ -2,47 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
+/* EasyFlow CFO brand, light theme. See tailwind.config.js for the tokens. */
 @layer base {
   body {
-    @apply bg-navy text-white font-mulish;
+    @apply bg-offwhite text-navy font-body;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sora;
+    @apply font-heading;
   }
 }
 
 @layer components {
+  /* One Flame pill per section: white bold 16px text on the flame gradient. */
   .btn-primary {
-    @apply bg-orange hover:bg-orange-hover text-white font-sora font-semibold
-           py-3 px-6 rounded-lg transition-colors duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-flame-btn hover:bg-flame-btn-hover
+           text-white font-body font-bold text-base py-3 px-6 shadow-flame transition
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply border border-stone text-stone hover:text-white hover:border-white
-           font-sora font-medium py-3 px-6 rounded-lg transition-colors duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-white
+           text-ink hover:border-cobalt font-body font-semibold py-3 px-6 transition;
   }
 
   .btn-ghost {
-    @apply text-stone hover:text-white font-mulish transition-colors duration-200;
+    @apply text-slate hover:text-ink font-body font-semibold transition-colors duration-200;
   }
 
+  .card {
+    @apply bg-white rounded-2xl shadow-card p-6;
+  }
+
+  /* Older screens still use card-dark; it is now the standard white card. */
   .card-dark {
-    @apply bg-navy-light rounded-xl border border-white/10 p-6;
+    @apply bg-white rounded-2xl shadow-card p-6 text-navy;
   }
 
   .card-light {
-    @apply bg-offwhite rounded-xl p-6 text-navy;
+    @apply bg-cream rounded-2xl p-6 text-navy;
+  }
+
+  .eyebrow {
+    @apply font-body text-sm font-semibold uppercase tracking-[0.04em];
+  }
+
+  .amber-text {
+    @apply italic bg-amber-text bg-clip-text text-transparent;
   }
 
   .skeleton {
-    @apply bg-navy-light animate-shimmer rounded;
+    @apply bg-line animate-shimmer rounded;
     background-image: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.6) 50%,
       transparent 100%
     );
     background-size: 200% 100%;
   }
 }
+
+/*
+ * Bridge for the older screens (Input, Dashboard, Breakeven, and so on), which were
+ * written for a dark navy theme. Inside the app's content area we flip their dark
+ * utilities to the light brand look. These screens get rebuilt on the workbook in
+ * stage 3; until then this keeps them readable without rewriting each one.
+ */
+.app-content .bg-navy { background-color: #F5F3F0; }
+.app-content .bg-navy-light { background-color: #FFFFFF; box-shadow: 0 18px 40px -24px rgba(10,36,99,0.45); }
+.app-content [class*="bg-navy/"] { background-color: rgba(245,243,240,0.95); }
+.app-content [class*="bg-navy-light/"] { background-color: #FFFFFF; }
+.app-content [class*="from-navy"] { --tw-gradient-from: #FFFFFF var(--tw-gradient-from-position) !important; --tw-gradient-to: rgba(255,255,255,0) var(--tw-gradient-to-position); }
+.app-content [class*="via-navy"] { --tw-gradient-via: #FFFFFF var(--tw-gradient-via-position) !important; }
+.app-content [class*="to-navy"] { --tw-gradient-to: #FFFFFF var(--tw-gradient-to-position) !important; }
+.app-content .bg-white\/5,
+.app-content .bg-white\/10,
+.app-content .bg-white\/\[0\.03\] { background-color: #F5F3F0; }
+.app-content [class*="border-white/"] { border-color: #E7E2DB; }
+.app-content .text-white { color: #0E1B2E; }
+.app-content [class*="text-white/"] { color: #5B6577; }
+.app-content .text-stone,
+.app-content .text-stone-light { color: #5B6577; }
+.app-content .hover\:text-white:hover { color: #0A2463; }
+.app-content .hover\:bg-white\/5:hover,
+.app-content .hover\:bg-white\/10:hover { background-color: #EFEBE5; }
+.app-content .placeholder-stone::placeholder { color: #8A8278; }
+.app-content input.bg-navy,
+.app-content select.bg-navy,
+.app-content textarea.bg-navy,
+.app-content input.bg-navy-light,
+.app-content select.bg-navy-light { background-color: #FFFFFF; border: 1px solid #E7E2DB; box-shadow: none; }
+
+/* Text on orange or dark fills stays white. */
+.app-content .bg-orange.text-white,
+.app-content .bg-orange .text-white,
+.app-content .btn-primary,
+.app-content .bg-ink .text-white,
+.app-content .bg-ink.text-white,
+.app-content .bg-cobalt .text-white,
+.app-content .bg-cobalt.text-white,
+.app-content .bg-glossy-cobalt .text-white,
+.app-content .bg-glossy-cobalt.text-white,
+.app-content [class*="bg-status-"].text-white,
+.app-content [class*="bg-tier-"].text-white { color: #FFFFFF; }
+.app-content .bg-glossy-cobalt [class*="text-white/"] { color: #DCEBFF; }
+.app-content .bg-glossy-cobalt [class*="border-white/"] { border-color: rgba(255,255,255,0.14); }
