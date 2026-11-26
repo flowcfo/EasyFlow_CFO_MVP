@@ -82,7 +82,7 @@ export default function SetPassword() {
       syncSupabaseSessionToLocalStorage(sess.session);
 
       // First-time clients land on dashboard so they see the WelcomeCard.
-      window.location.replace('/app/dashboard');
+      window.location.replace('/app/game-plan');
     } catch (err) {
       setError(err.message || 'Could not set password.');
       setLoading(false);
@@ -93,27 +93,23 @@ export default function SetPassword() {
 
   return (
     <AuthLayout>
-      <div className="text-center mb-6">
-        <h1 className="font-sora text-2xl font-bold text-navy tracking-tight">
-          EasyFlow CFO
-        </h1>
-        <p className="font-mulish text-xs text-stone mt-1">
-          Your Numbers Made Easy.
-        </p>
+      <div className="mb-8 flex flex-col items-center">
+        <img src="/easyflow-cfo-logo.png" alt="EasyFlow CFO" className="h-14 w-auto" />
+        <p className="mt-2 text-sm font-semibold text-slate">Your Numbers Made Easy.</p>
       </div>
 
       <div className="text-center mb-6">
         <h2 className="font-sora text-xl font-bold text-navy leading-snug">
           {heading}
         </h2>
-        <p className="font-mulish text-sm text-stone mt-2">
+        <p className="font-mulish text-sm text-slate mt-2">
           Set your password to access your dashboard.
         </p>
       </div>
 
       {sessionMissing ? (
         <>
-          <p className="font-mulish text-sm text-stone text-center">
+          <p className="font-mulish text-sm text-slate text-center">
             This invite link is invalid or has expired. Ask your CFO to resend it.
           </p>
           <Link
@@ -124,7 +120,7 @@ export default function SetPassword() {
           </Link>
         </>
       ) : !sessionReady ? (
-        <p className="font-mulish text-sm text-stone text-center">
+        <p className="font-mulish text-sm text-slate text-center">
           Verifying invite link...
         </p>
       ) : (
@@ -133,13 +129,13 @@ export default function SetPassword() {
           <PasswordField label="Confirm password" value={pw2} onChange={setPw2} show={show} />
 
           <div className="flex items-center justify-between">
-            <p className="font-mulish text-xs text-stone">
+            <p className="font-mulish text-xs text-slate">
               At least 10 characters, one number, one symbol.
             </p>
             <button
               type="button"
               onClick={() => setShow((s) => !s)}
-              className="font-mulish text-xs font-semibold text-stone hover:text-navy"
+              className="font-mulish text-xs font-semibold text-slate hover:text-navy"
             >
               {show ? 'Hide' : 'Show'}
             </button>
@@ -154,7 +150,7 @@ export default function SetPassword() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-navy hover:bg-[#1a2f4f] disabled:opacity-60 text-white font-sora font-semibold py-2.5 rounded-lg transition"
+            className="btn-primary w-full"
           >
             {loading ? 'Setting password...' : 'Set password & sign in'}
           </button>

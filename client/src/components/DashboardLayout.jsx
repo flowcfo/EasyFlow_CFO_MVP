@@ -1,23 +1,22 @@
 import { Outlet } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import TopBar from './TopBar.jsx';
 import NavSidebar from './NavSidebar.jsx';
-import LevelUpOverlay from './LevelUpOverlay.jsx';
 
+// White header with the logo, white menu on the left (a row of tabs on phones),
+// content on the off-white page. `app-content` turns on the light-theme bridge
+// in index.css for the older screens.
 export default function DashboardLayout() {
   return (
-    <div className="flex min-h-screen bg-navy">
-      <NavSidebar />
-      <main className="flex-1 overflow-y-auto">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-          className="p-6 max-w-6xl mx-auto"
-        >
-          <Outlet />
-        </motion.div>
-      </main>
-      <LevelUpOverlay />
+    <div className="min-h-screen bg-offwhite text-navy">
+      <TopBar />
+      <div className="md:flex">
+        <NavSidebar />
+        <main className="app-content min-w-0 flex-1">
+          <div className="mx-auto w-full max-w-[1180px] px-4 py-6 md:px-8 md:py-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
