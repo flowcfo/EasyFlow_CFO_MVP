@@ -24,13 +24,18 @@ if (!url || !anonKey) {
  *
  * detectSessionInUrl: true (default) lets Supabase parse #access_token=... fragments on the
  * /reset-password and /set-password routes that arrive from the email link.
+ *
+ * flowType must be 'implicit'. Invite and recovery links made on the server
+ * (auth.admin.generateLink) come back with #access_token=... in the URL. A 'pkce'
+ * client only accepts ?code=... and silently drops those tokens, so every invite
+ * showed "invalid or expired" even though Supabase had accepted the link.
  */
 export const supabase = createClient(url || 'http://localhost', anonKey || 'public-anon-key', {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
+    flowType: 'implicit',
   },
 });
 
