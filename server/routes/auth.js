@@ -5,6 +5,24 @@ import { authLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
+/**
+ * A client's row in their CFO's client book starts as 'pending' when invited.
+ * The first time the client is signed in (after Set Password, or a normal login),
+ * flip it to 'active' so the CFO view stops showing "Invite pending".
+ */
+async function markClientActive(user) {
+  if (!user?.id || user.user_type !== 'client') return;
+  try {
+    await supabaseAdmin
+      .from('partner_clients')
+      .update({ status: 'active' })
+      .eq('client_user_id', user.id)
+      .eq('status', 'pending');
+  } catch (err) {
+    console.error('[auth] could not mark client active:', err.message);
+  }
+}
+
 router.post('/signup', authLimiter, async (req, res, next) => {
   try {
     const { email, password, full_name, business_name, revenue_band, industry, partner_id } = req.body;
@@ -93,6 +111,8 @@ router.post('/login', authLimiter, async (req, res, next) => {
       .eq('id', data.user.id)
       .single();
 
+    await markClientActive(profile);
+
     // If user is a partner-managed client, include brand config
     let brand_config = null;
     if (profile?.managed_by_partner_id) {
@@ -164,6 +184,8 @@ router.post('/logout', authGuard, async (req, res) => {
 
 router.get('/me', authGuard, async (req, res, next) => {
   try {
+    await markClientActive(req.user);
+
     let brand_config = null;
     if (req.user?.managed_by_partner_id) {
       const { data: partner } = await supabaseAdmin
