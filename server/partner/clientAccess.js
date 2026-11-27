@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { supabaseAdmin } from '../db/supabase.js';
+import { supabaseAdmin, supabaseSignInClient } from '../db/supabase.js';
 
 const ACCESS_TOKEN_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -102,7 +102,7 @@ function portalUrl() {
  * Build a one-time link that signs the client in and lands them on Set Password.
  * New people get an "invite" link (this also creates their login). People who
  * already have a login get a "recovery" link, which lands on the same page.
- * Nothing is emailed here: Nick sends the link from his own Outlook.
+ * Nothing is emailed here: this is the copy-a-link fallback.
  */
 async function createSetPasswordLink(email, metadata) {
   const redirectTo = `${portalUrl()}/set-password`;
@@ -124,6 +124,46 @@ async function createSetPasswordLink(email, metadata) {
   });
   if (recovery.error) throw recovery.error;
   return { user: recovery.data.user, link: recovery.data.properties?.action_link };
+}
+
+/**
+ * Email the client their set-password link through Supabase's mailer (Resend SMTP).
+ * New people get the "Invite user" email (this also creates their login); people
+ * who already have a login get the "Reset password" email. Both land on /set-password.
+ * Returns { sent, userId, error }. Never throws for a mail failure: the caller
+ * falls back to a copyable link.
+ */
+async function emailSetPasswordLink(email, metadata) {
+  const redirectTo = `${portalUrl()}/set-password`;
+  const { data: existingId } = await supabaseAdmin.rpc('auth_user_id_by_email', { p_email: email });
+
+  if (!existingId) {
+    const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo, data: metadata });
+    if (!error) return { sent: true, userId: data.user.id };
+    // The login may have been created even though the email failed.
+    const { data: afterId } = await supabaseAdmin.rpc('auth_user_id_by_email', { p_email: email });
+    return { sent: false, userId: afterId || null, error: error.message };
+  }
+
+  const { error } = await supabaseSignInClient().auth.resetPasswordForEmail(email, { redirectTo });
+  if (!error) return { sent: true, userId: existingId };
+  return { sent: false, userId: existingId, error: error.message };
+}
+
+/**
+ * Get the client a way in: email first; if the email can't go out, a copyable
+ * link instead. (Making a link replaces any link already emailed, so we only make
+ * one when the email failed or when Nick asks for a link.)
+ */
+async function deliverSetPassword(email, metadata, mode = 'email') {
+  if (mode === 'email') {
+    const mail = await emailSetPasswordLink(email, metadata);
+    if (mail.sent) return { userId: mail.userId, email_sent: true, invite_link: null, email_error: null };
+    const { user, link } = await createSetPasswordLink(email, metadata);
+    return { userId: user.id, email_sent: false, invite_link: link || null, email_error: mail.error || null };
+  }
+  const { user, link } = await createSetPasswordLink(email, metadata);
+  return { userId: user.id, email_sent: false, invite_link: link || null, email_error: null };
 }
 
 /**
@@ -151,8 +191,8 @@ export async function inviteClient(partnerId, inviteData) {
   const business_name = String(inviteData.business_name || '').trim() || null;
   const email = String(inviteData.email || '').trim().toLowerCase();
 
-  const { user: authUser, link } = await createSetPasswordLink(email, { full_name: client_name, business_name });
-  const clientUserId = authUser.id;
+  const delivery = await deliverSetPassword(email, { full_name: client_name, business_name }, inviteData.mode || 'email');
+  const clientUserId = delivery.userId;
 
   // Make sure the profile row uses the same id as the login.
   const { data: profileById } = await supabaseAdmin.from('users').select('id').eq('id', clientUserId).maybeSingle();
@@ -205,14 +245,19 @@ export async function inviteClient(partnerId, inviteData) {
 
   return {
     client_record: clientRecord,
-    invite_link: link || null,
-    email_sent: false,
+    invite_link: delivery.invite_link,
+    email_sent: delivery.email_sent,
+    email_error: delivery.email_error,
+    email,
     client_user_id: clientUserId,
   };
 }
 
-/** A fresh set-password link for a client already in the partner's book. */
-export async function createClientInviteLink(partnerId, clientRecordId) {
+/**
+ * Send a client a fresh way in. mode 'email' (default) emails it and falls back
+ * to a link; mode 'link' just returns a copyable link.
+ */
+export async function resendClientInvite(partnerId, clientRecordId, mode = 'email') {
   const { data: record } = await supabaseAdmin
     .from('partner_clients')
     .select('id, client_user_id, client_name, business_name')
@@ -227,11 +272,18 @@ export async function createClientInviteLink(partnerId, clientRecordId) {
     .eq('id', record.client_user_id)
     .single();
 
-  const { link } = await createSetPasswordLink(profile.email, {
+  const delivery = await deliverSetPassword(profile.email, {
     full_name: record.client_name,
     business_name: record.business_name,
-  });
-  return { invite_link: link || null, email: profile.email, client_name: record.client_name };
+  }, mode === 'link' ? 'link' : 'email');
+
+  return {
+    email_sent: delivery.email_sent,
+    invite_link: delivery.invite_link,
+    email_error: delivery.email_error,
+    email: profile.email,
+    client_name: record.client_name,
+  };
 }
 
 export async function removeClient(partnerId, clientRecordId) {
