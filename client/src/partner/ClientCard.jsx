@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api.js';
-import InviteLinkPanel from './InviteLinkPanel.jsx';
+import InviteResult from './InviteResult.jsx';
 
 export default function ClientCard({ client }) {
   const navigate = useNavigate();
@@ -19,10 +19,10 @@ export default function ClientCard({ client }) {
     setLoadingLink(true);
     setInviteError('');
     try {
-      const data = await api.post(`/partner/clients/${client.id}/invite-link`, {});
+      const data = await api.post(`/partner/clients/${client.id}/invite-link`, { mode: 'email' });
       setInvite(data);
     } catch (err) {
-      setInviteError(err.message || 'Could not make a new link.');
+      setInviteError(err.message || 'Could not resend the invite.');
     } finally {
       setLoadingLink(false);
     }
@@ -57,7 +57,7 @@ export default function ClientCard({ client }) {
           {pending && (
             <button type="button" onClick={getLink} disabled={loadingLink}
               className="font-semibold text-cobalt hover:underline disabled:opacity-50">
-              {loadingLink ? 'Getting link...' : 'Get invite link'}
+              {loadingLink ? 'Sending...' : 'Resend invite'}
             </button>
           )}
         </div>
@@ -68,9 +68,9 @@ export default function ClientCard({ client }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4" role="dialog" aria-modal="true"
              onClick={() => setInvite(null)}>
           <div className="w-full max-w-md rounded-[18px] bg-white p-6 text-navy shadow-card sm:p-8" onClick={(e) => e.stopPropagation()}>
-            <p className="eyebrow text-ember">New invite link</p>
-            <h2 className="mb-5 mt-1 font-heading text-xl font-bold">Send {String(invite.client_name || 'your client').split(' ')[0]} a fresh link</h2>
-            <InviteLinkPanel link={invite.invite_link} email={invite.email} clientName={invite.client_name} />
+            <p className="eyebrow text-ember">Invite resent</p>
+            <h2 className="mb-4 mt-1 font-heading text-xl font-bold">{invite.client_name || 'Your client'}</h2>
+            <InviteResult result={invite} clientRecordId={client.id} />
             <button type="button" onClick={() => setInvite(null)} className="btn-ghost mt-6 w-full text-center">Done</button>
           </div>
         </div>

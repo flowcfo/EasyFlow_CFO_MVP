@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api } from '../utils/api.js';
-import InviteLinkPanel from './InviteLinkPanel.jsx';
+import InviteResult from './InviteResult.jsx';
 
 const inputClass =
   'w-full rounded-[10px] border border-line bg-white px-3 py-2.5 text-navy outline-none transition focus:border-cobalt focus:ring-2 focus:ring-cobalt/15';
@@ -21,7 +21,7 @@ export default function InviteModal({ onClose, onInvited }) {
     setError('');
     try {
       const data = await api.post('/partner/clients/invite', form);
-      setResult({ link: data.invite_link, email: form.email.trim(), name: form.client_name.trim() });
+      setResult({ ...data, email: data.email || form.email.trim(), client_name: form.client_name.trim() });
       onInvited?.();
     } catch (err) {
       setError(err.message || 'Could not add this client.');
@@ -36,23 +36,14 @@ export default function InviteModal({ onClose, onInvited }) {
         {result ? (
           <>
             <p className="eyebrow text-ember">Client added</p>
-            <h2 className="mb-2 mt-1 font-heading text-xl font-bold">Send {result.name.split(' ')[0]} their invite</h2>
-            <p className="mb-5 text-slate">
-              {result.name} is in your client list. Send this link so they can set a password and sign in.
-            </p>
-            {result.link ? (
-              <InviteLinkPanel link={result.link} email={result.email} clientName={result.name} />
-            ) : (
-              <p className="rounded-[10px] bg-cream px-3 py-2 text-ember">
-                The client was added, but no link came back. Open their card to get a new link.
-              </p>
-            )}
+            <h2 className="mb-4 mt-1 font-heading text-xl font-bold">{result.client_name} is in your client list</h2>
+            <InviteResult result={result} clientRecordId={result.client_record?.id} />
             <button type="button" onClick={onClose} className="btn-ghost mt-6 w-full text-center">Done</button>
           </>
         ) : (
           <>
             <h2 className="mb-1 font-heading text-xl font-bold">Add a client</h2>
-            <p className="mb-5 text-slate">You'll get a link to email them from Outlook.</p>
+            <p className="mb-5 text-slate">We'll email them a link to set their password.</p>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate" htmlFor="inv-name">Client name</label>
@@ -73,7 +64,7 @@ export default function InviteModal({ onClose, onInvited }) {
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
                 <button type="submit" disabled={loading} className="btn-primary flex-1">
-                  {loading ? 'Adding...' : 'Add client'}
+                  {loading ? 'Sending...' : 'Add and send invite'}
                 </button>
               </div>
             </form>
