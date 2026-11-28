@@ -16,6 +16,7 @@ import outputRoutes from './routes/outputs.js';
 import integrationRoutes from './routes/integrations.js';
 import partnerRoutes from './routes/partner.js';
 import rolling12Routes from './routes/rolling12.js';
+import workbookRoutes from './routes/workbook.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { logSanitizer } from './middleware/logSanitizer.js';
 import { globalLimiter } from './middleware/rateLimiter.js';
@@ -93,6 +94,7 @@ app.use('/outputs', outputRoutes);
 app.use('/integrations', integrationRoutes);
 app.use('/partner', partnerRoutes);
 app.use('/rolling12', rolling12Routes);
+app.use('/workbook', workbookRoutes);
 
 app.use(errorHandler);
 

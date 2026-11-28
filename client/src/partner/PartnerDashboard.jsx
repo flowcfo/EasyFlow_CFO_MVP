@@ -5,6 +5,7 @@ import { formatCurrency } from '../utils/format.js';
 import ClientCard from './ClientCard.jsx';
 import AlertFeed from './AlertFeed.jsx';
 import InviteModal from './InviteModal.jsx';
+import WorkbookConnectionCard from './WorkbookConnectionCard.jsx';
 
 const TIER_LABELS = { 1: 'Crisis', 2: 'Getting Traction', 3: 'Stable', 4: 'Healthy', 5: 'Wealth Mode' };
 const TIER_COLORS = { 1: '#dc2626', 2: '#F05001', 3: '#eab308', 4: '#22c55e', 5: '#f59e0b' };
@@ -49,14 +50,13 @@ export default function PartnerDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-heading font-bold text-white">Partner Dashboard</h1>
-        <button
-          onClick={() => setShowInvite(true)}
-          className="bg-orange text-white px-6 py-2 rounded-lg font-heading font-semibold hover:bg-orange/90 transition"
-        >
-          Add Client
+        <h1 className="text-2xl font-heading font-bold text-white">Clients</h1>
+        <button onClick={() => setShowInvite(true)} className="btn-primary">
+          Add client
         </button>
       </div>
+
+      <WorkbookConnectionCard />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Total Clients" value={dashboard.total_clients} />
